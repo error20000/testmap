@@ -54,10 +54,10 @@ function ajaxReq(url, param, callback, cp){
 					self.logining = false;
 					if(res.code > 0){
 						//sessionStorage.setItem('checked', self.checked);
-						//sessionStorage.setItem('user', JSON.stringify(res.data[0]));
+						sessionStorage.setItem('user', JSON.stringify(res.data));
 						//sessionStorage.setItem('loginTime', new Date().getTime());
 						if(res.data.admin === 1){
-							window.location.href = 'index.html';
+							window.location.href = 'admin.html';
 						}else{
 							window.location.href = 'index.html';
 						}

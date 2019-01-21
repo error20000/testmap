@@ -27,10 +27,11 @@ new Vue({
 			collapsed:false,
 			sysUserName: 'admin',
 			sysUserAvatar: '',
+			colors: COLORS,
 			map: '',
 			zoom: 12,
 			path: [],
-			canDraw: true,
+			canDraw: false,
 			canMove: false,
 			polyline: '',
 			
@@ -68,23 +69,23 @@ new Vue({
 				]
 			},
 			typeOptions:[
-				{value: '1',lable: 'It is not safe here.'},
-				{value: '2',lable: 'It is safe here.'},
-				{value: '3',lable: 'The traffic is so bad here.'},
-				{value: '4',lable: 'The traffic is good here.'},
-				{value: '5',lable: 'It is so noisy here.'},
-				{value: '6',lable: 'It is so quiet here.'},
-				{value: '7',lable: 'Here is in a mess.'},
-				{value: '8',lable: 'It is so beautiful here.'},
-				{value: '9',lable: 'I like local food.'},
-				{value: '10',lable: 'I want to be here next time.'},
-				{value: '11',lable: 'I will not be here next time.'}
+				{value: '1',label: 'It is not safe here.'},
+				{value: '2',label: 'It is safe here.'},
+				{value: '3',label: 'The traffic is so bad here.'},
+				{value: '4',label: 'The traffic is good here.'},
+				{value: '5',label: 'It is so noisy here.'},
+				{value: '6',label: 'It is so quiet here.'},
+				{value: '7',label: 'Here is in a mess.'},
+				{value: '8',label: 'It is so beautiful here.'},
+				{value: '9',label: 'I like local food.'},
+				{value: '10',label: 'I want to be here next time.'},
+				{value: '11',label: 'I will not be here next time.'}
 			]
 		}
 	},
 	methods: {
 		getLocation(){
-            /*var options={
+            var options={
                 enableHighAccuracy:true, 
                 maximumAge:1000
             }
@@ -95,9 +96,7 @@ new Vue({
             }else{
                 //浏览器不支持geolocation
             	alert("浏览器不支持地理定位。"); 
-            }*/
-			//PC test
-            this.showMap(30.67, 104.06);
+            }
         },
         onSuccess(position){
 			console.log("===========position============");
@@ -150,6 +149,8 @@ new Vue({
 					alert("定位失败,未知错误"); 
 				break; 
 			} 
+			//PC test
+            this.showMap(30.67, 104.06);
 		},
 		showMap: function (lat, lng) {
 			var center = {
@@ -158,7 +159,6 @@ new Vue({
 	        };
 	        this.map = new google.maps.Map(document.getElementById('gmap'), {
 		        center: center,
-		        draggable: false,
 		        zoom: this.zoom
 		        // mapTypeId: google.maps.MapTypeId.ROADMAP
 	        });
@@ -166,13 +166,25 @@ new Vue({
 	        this.initMousedown();
 	        this.initMousemove();
 	        this.initMouseup();
+	        //查询数据
+			this.getList();
 		},
 		//创建控件
 		initControl: function(){
-			
+			let _this = this;
+			var div = document.getElementById('controlDiv');
+			div.style.display = 'block';
+			this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
+			google.maps.event.addDomListener(div, 'click', function(event) {
+				_this.handleControl(event);
+			});
 		},
-		handleControl: function(){
-			
+		handleControl: function(event){
+			if(this.canDraw){
+				this.canDraw = false;
+			}else{
+				this.canDraw = true;
+			}
 		},
 		//自定义事件
 		initMousedown: function(){
@@ -196,6 +208,8 @@ new Vue({
 		handleMousedown: function(event){
 			console.log("handleMousedown");
 			if(this.canDraw){
+				//禁止拖动
+				this.map.setOptions({draggable:false});
 				let center = event.latLng;
 				let point = {
 						lat: center.lat(),
@@ -209,6 +223,12 @@ new Vue({
 				});
 				//开始移动
 				this.canMove = true;
+				
+				//polyline mouseup
+				let _this = this;
+				google.maps.event.addListener(this.polyline, 'mouseup', function(event) {
+					_this.handleMouseup(event);
+				});
 			}
 		},
 		handleMousemove: function(event){
@@ -225,28 +245,83 @@ new Vue({
 		},
 		handleMouseup: function(event){
 			console.log("handleMouseup");
-			let center = event.latLng;
-			let point = {
-					lat: center.lat(),
-					lng: center.lng()
+			if(this.canDraw){
+				let center = event.latLng;
+				let point = {
+						lat: center.lat(),
+						lng: center.lng()
+				};
+				console.log(point.lat+", "+point.lng);
+				this.canMove = false;
+				this.canDraw = false;
+				//开启拖动
+				this.map.setOptions({draggable:true});
+				//弹出窗口
+				this.addFormVisible = true;
+			}
+			
+		},
+		drawPolyline: function(data, index){
+			
+			var color = this.colors[index % this.colors.length];
+			var content = data.content;
+			if(data.type === 0){
+				for (var i = 0; i < this.typeOptions.length; i++) {
+					if(this.typeOptions[i].value === data.option){
+						content = this.typeOptions[i].label;
+						break;
+					}
+				}
+			}
+			
+			var path = JSON.parse(data.path);
+			var marker = new google.maps.Polygon({
+				strokeColor: color,
+				fillColor: color,
+				fillOpacity: 0.5,
+				map: this.map,
+				path: path
+			});
+			var infowindow = new google.maps.InfoWindow({
+				content: content,
+				position: path[0]
+			});
+			//infowindow.open(this.map, marker);
+			
+			//事件
+			google.maps.event.addListener(marker, 'click', function(event) {
+				infowindow.open(this.map, marker);
+			});
+		},
+		//重置
+		reset: function(){
+			this.path = [];
+			this.polyline = "";
+			this.addForm = {
+				local: '',
+				path:'',
+				type:'',
+				option: '',
+				content:''
 			};
-			console.log(point.lat+", "+point.lng);
-			this.canMove = false;
-			//弹出窗口
-			//this.addFormVisible = true;
-			
-			
-			/*var myCity = new google.maps.Circle({
-				  center:{lat: point.lat, lng: point.lng},
-				  radius:1,
-				  strokeColor:"#0000FF",
-				  strokeOpacity:0.8,
-				  strokeWeight:2,
-				  fillColor:"#0000FF",
-				  fillOpacity:0.4
-				  });
+		},
+		//查询
+		getList: function(){
+			var user = JSON.parse(sessionStorage.getItem('user'));
 
-				myCity.setMap(this.map);*/
+			var _this = this;
+			var url = baseUrl + "api/content/findList";
+			var params = {
+					user: user.pid
+			};
+			ajaxReq(url, params, function(res){
+				if(res.code > 0){
+					console.log(res.data);
+					for (var i = 0; i < res.data.length; i++) {
+						_this.drawPolyline(res.data[i], i);
+					}
+				}
+			});
 		},
 		//新增评论
 		addClose: function () {
@@ -260,7 +335,7 @@ new Vue({
 					this.$confirm('确认提交吗？', '提示', {}).then(() => {
 						var url = baseUrl + "api/content/add";
 						var params = Object.assign({}, this.addForm);
-						params.path = this.path;
+						params.path = JSON.stringify(this.path);
 						var self = this;
 						this.addLoading = true;
 						ajaxReq(url, params, function(res){
@@ -272,6 +347,7 @@ new Vue({
 								});
 								self.addFormVisible = false;
 								self.getList();
+								self.reset();
 							}else{
 								self.$message({
 									message: res.msg,

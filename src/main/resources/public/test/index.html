@@ -12,10 +12,12 @@
 </head>
 <body>
   <div id="app">
-		<div id="gmap" style="width:100%;height:100%;"></div>
-		
+		<div id="gmap" style="width:100%;height:100%;">In the process of positioning... </div>
+		<div id="controlDiv" style="display: none;">
+			<el-button icon="el-icon-edit"></el-button>
+		</div>
 		<!--新增界面-->
-		<el-dialog title="" :visible.sync="addFormVisible" :close-on-click-modal="false" width="95%">
+		<el-dialog title="" :visible.sync="addFormVisible" :close-on-click-modal="false" width="95%" :show-close="false">
 			<el-form size="mini" :model="addForm" label-width="0px" :rules="addFormRules" ref="addForm">
 				<el-form-item prop="type">
 					<el-radio v-model="addForm.type" :label="0">Please choose your feelings about this area.</el-radio>
@@ -25,7 +27,7 @@
 					    <el-option
 					      v-for="item in typeOptions"
 					      :key="item.value"
-					      :label="item.lable"
+					      :label="item.label"
 					      :value="item.value">
 					    </el-option>
 					 </el-select>
@@ -38,7 +40,7 @@
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
-				<el-button @click="addClose">close</el-button>
+				<!-- <el-button @click="addClose">close</el-button> -->
 				<el-button type="primary" @click="addSubmit" :loading="addLoading">submit</el-button>
 			</div>
 		</el-dialog>
@@ -50,6 +52,7 @@
   <!-- 引入组件库 -->
   <script src="https://cdn.bootcss.com/element-ui/2.4.0/index.js"></script>
   <script src="http://ditu.google.cn/maps/api/js?&key=AIzaSyDJW4jsPlNKgv6jFm3B5Edp5ywgdqLWdmc"></script>
+  <script type="text/javascript" src="js/color.js"></script>
   <script type="text/javascript" src="js/index.js"></script>
-  <script src="http://pv.sohu.com/cityjson?ie=utf-8"></script>
+  <!-- <script src="http://pv.sohu.com/cityjson?ie=utf-8"></script> -->
 </html>
