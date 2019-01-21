@@ -1,0 +1,17 @@
+.mytable table {
+	table-layout: fixed;
+}
+
+.mytable table th {
+	
+}
+
+.mytable table td {
+	word-wrap: break-word;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.el-table .cell {
+	white-space: nowrap !important;
+}
