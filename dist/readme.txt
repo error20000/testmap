@@ -15,6 +15,11 @@ spring.datasource.url=jdbc:mysql://127.0.0.1:3306/testmap?characterEncoding=utf8
 spring.datasource.username=root
 spring.datasource.password=123456
 
+文件上传
+修改config/application.properties里的upload_path，修改成你的地址，建议与项目放一起。下面是示例。
+#上传    E:/Workspaces/ecworkspace/20171207/docs/docs_api/upload/
+upload_path=E:/Workspaces/ecworkspace/testmap/dist/upload/
+
 启动
 运行start.bat
 

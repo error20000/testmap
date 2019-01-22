@@ -106,6 +106,8 @@ new Vue({
             var lng = position.coords.longitude;
             //纬度
             var lat = position.coords.latitude;
+            //记录位置
+            this.addForm.local = JSON.stringify({lat: lat, lng: lng});
             
             //google 
             this.showMap(lat, lng);
@@ -262,6 +264,9 @@ new Vue({
 			
 		},
 		drawPolyline: function(data, index){
+			if(!data.path){
+				return;
+			}
 			
 			var color = this.colors[index % this.colors.length];
 			var content = data.content;
@@ -391,6 +396,9 @@ new Vue({
 	mounted: function() {
 
 		var user = JSON.parse(sessionStorage.getItem('user'));
+		if(user　==　null){
+	   		window.location.href = "login.html";
+		}
 		if(user.admin != 1){
 			alert("no auth!!");
 	   		window.location.href = "login.html";

@@ -19,6 +19,8 @@ function ajaxReq(url, param, callback, cp){
 		});
 }
 
+Vue.use(VueQuillEditor);
+
 new Vue({
     el: '#app',
     data: function(){
@@ -80,10 +82,65 @@ new Vue({
 				{value: '9',label: 'I like local food.'},
 				{value: '10',label: 'I want to be here next time.'},
 				{value: '11',label: 'I will not be here next time.'}
-			]
+			],
+			uploadUrl: baseUrl + 'api/file/uploadImg',
+			editorOption: {
+				modules: {
+					toolbar: {
+						container: [
+				              /*['bold', 'italic', 'underline', 'strike'],
+				              ['blockquote', 'code-block'],
+				              [{ 'header': 1 }, { 'header': 2 }],
+				              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+				              [{ 'script': 'sub'}, { 'script': 'super' }],
+				              [{ 'indent': '-1'}, { 'indent': '+1' }],
+				              [{ 'direction': 'rtl' }],
+				              [{ 'size': ['small', false, 'large', 'huge'] }],
+				              [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+				              [{ 'color': [] }, { 'background': [] }],
+				              [{ 'font': [] }],
+				              [{ 'align': [] }],
+				              ['clean'],
+				              ['link', 'image']*/
+							  ['bold', 'image']
+				            ],
+				            handlers: {
+							    // handlers object will be merged with default handlers object
+							    'image': function(value) {
+							    	$('#uploadBtn').click();
+							    }
+
+						  }
+					}
+				}
+		          
+		    },
+		    editorImage: ''
 		}
 	},
 	methods: {
+
+		onEditorBlur(editor) {
+			//console.log('editor blur!', editor)
+		},
+		onEditorFocus(editor) {
+			//console.log('editor focus!', editor)
+		},
+		onEditorReady(editor) {
+			//console.log('editor ready!', editor)
+		},
+		onEditorChange({ editor, html, text }) {
+			//console.log('editor change!', editor, html, text)
+		    this.content = html;
+		},
+		handleSuccessUpload(res, file){
+			console.log(res);
+			let dataUrl = '/'+res.data.path;
+			let editor = this.$refs.myQuillEditor.quill;
+   			let index = (editor.getSelection() || {}).index || editor.getLength();
+   			editor.insertEmbed(index, 'image', dataUrl, 'user');
+		},
+		
 		getLocation(){
             var options={
                 enableHighAccuracy:true, 
@@ -106,6 +163,8 @@ new Vue({
             var lng = position.coords.longitude;
             //纬度
             var lat = position.coords.latitude;
+            //记录位置
+            this.addForm.local = JSON.stringify({lat: lat, lng: lng});
             
             //google 
             this.showMap(lat, lng);
@@ -152,6 +211,7 @@ new Vue({
 			//PC test
             this.showMap(30.67, 104.06);
 		},
+		
 		showMap: function (lat, lng) {
 			var center = {
 		        lat: lat,
@@ -169,6 +229,7 @@ new Vue({
 	        //查询数据
 			this.getList();
 		},
+		
 		//创建控件
 		initControl: function(){
 			let _this = this;
@@ -262,6 +323,9 @@ new Vue({
 			
 		},
 		drawPolyline: function(data, index){
+			if(!data.path){
+				return;
+			}
 			
 			var color = this.colors[index % this.colors.length];
 			var content = data.content;
@@ -391,6 +455,10 @@ new Vue({
 		},
 	},
 	mounted: function() {
+		var user = JSON.parse(sessionStorage.getItem('user'));
+		if(user == null){
+	   		window.location.href = "login.html";
+		}
 		this.isLogin(this.getLocation);
 	}
   });
