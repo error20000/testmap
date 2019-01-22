@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Geographical Area of Perception</title>
+  <title>Area of geographical perception</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, minimal-ui" >
   <!-- 引入样式 -->
   <link rel="stylesheet" href="css/animate.css">
@@ -20,9 +20,9 @@
 		<el-dialog title="" :visible.sync="addFormVisible" :close-on-click-modal="false" width="95%" :show-close="false">
 			<el-form size="mini" :model="addForm" label-width="0px" :rules="addFormRules" ref="addForm">
 				<el-form-item prop="type">
-					<el-radio v-model="addForm.type" :label="0">Please choose your feelings about this area.</el-radio>
+					Please choose your feelings about this area.
 				</el-form-item>
-				<el-form-item prop="option" v-if="addForm.type === 0">
+				<el-form-item prop="option">
 					<el-select v-model="addForm.option" placeholder="please choose your feelings">
 					    <el-option
 					      v-for="item in typeOptions"
@@ -33,9 +33,9 @@
 					 </el-select>
 				</el-form-item>
 				<el-form-item prop="type">
-					<el-radio v-model="addForm.type" :label="1">Please write down your feelings about this area.</el-radio>
+					Please write down your feelings about this area.
 				</el-form-item>
-				<el-form-item prop="content" v-if="addForm.type === 1">
+				<el-form-item prop="content">
 					<quill-editor style="height: 100px;" v-model="addForm.content"
 			                ref="myQuillEditor"
 			                :options="editorOption"
@@ -67,9 +67,13 @@
   <script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>
   <!-- 引入组件库 -->
   <script src="https://cdn.bootcss.com/element-ui/2.4.0/index.js"></script>
+  <script src="https://cdn.bootcss.com/element-ui/2.4.0/locale/en.js"></script>
   <script src="http://ditu.google.cn/maps/api/js?&key=AIzaSyDJW4jsPlNKgv6jFm3B5Edp5ywgdqLWdmc"></script>
   <script type="text/javascript" src="js/quill/dist/index.js"></script>
   <script type="text/javascript" src="js/color.js"></script>
   <script type="text/javascript" src="js/index.js"></script>
   <!-- <script src="http://pv.sohu.com/cityjson?ie=utf-8"></script> -->
+  <script>
+	  ELEMENT.locale(ELEMENT.lang.en);
+  </script>
 </html>

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Geographical Area of Perception</title>
+  <title>Area of geographical perception</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, minimal-ui" >
   <!-- 引入样式 -->
   <link rel="stylesheet" href="css/login.css">
@@ -11,16 +11,16 @@
 <body>
   <div id="app">
     <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-position="left" label-width="0px" class="demo-ruleForm login-container">
-    <h3 class="title">Geographical Area of Perception</h3>
+    <h3 class="title">Area of geographical perception</h3>
     <el-form-item prop="username">
-      <el-input type="text" v-model="ruleForm.username" auto-complete="off" placeholder="账号"></el-input>
+      <el-input type="text" v-model="ruleForm.username" auto-complete="off" placeholder="username"></el-input>
     </el-form-item>
     <el-form-item prop="password">
-      <el-input type="password" v-model="ruleForm.password" auto-complete="off" placeholder="密码"></el-input>
+      <el-input type="password" v-model="ruleForm.password" auto-complete="off" placeholder="password"></el-input>
     </el-form-item>
     <!-- <el-checkbox v-model="checked" checked class="remember">记住密码</el-checkbox> -->
     <el-form-item style="width:100%;">
-      <el-button type="primary" style="width:100%;" @click.native.prevent="handleSubmit" :loading="logining">登录</el-button>
+      <el-button type="primary" style="width:100%;" @click.native.prevent="handleSubmit" :loading="logining">Login</el-button>
     </el-form-item>
   </el-form>
   </div>
@@ -29,6 +29,10 @@
   <script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>
   <!-- 引入组件库 -->
   <script src="https://cdn.bootcss.com/element-ui/2.4.0/index.js"></script>
+  <script src="https://cdn.bootcss.com/element-ui/2.4.0/locale/en.js"></script>
   <script type="text/javascript" src="js/login.js"></script>
+  <script>
+	  ELEMENT.locale(ELEMENT.lang.en)
+  </script>
 </body>
 </html>

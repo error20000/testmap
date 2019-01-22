@@ -25,9 +25,9 @@ new Vue({
     el: '#app',
     data: function(){
 		return {
-			sysName:'后台管理',
+			sysName:'',
 			collapsed:false,
-			sysUserName: 'admin',
+			sysUserName: '',
 			sysUserAvatar: '',
 			colors: COLORS,
 			map: '',
@@ -36,6 +36,7 @@ new Vue({
 			canDraw: false,
 			canMove: false,
 			polyline: '',
+			user: '',
 			
 			//新增界面数据
 			addFormVisible: false,//新增界面是否显示
@@ -152,7 +153,7 @@ new Vue({
                 
             }else{
                 //浏览器不支持geolocation
-            	alert("浏览器不支持地理定位。"); 
+            	alert("Browsers do not support geolocation。"); 
             }
         },
         onSuccess(position){
@@ -196,16 +197,16 @@ new Vue({
 			console.log(error);
 			switch(error.code) { 
 				case error.PERMISSION_DENIED: 
-					alert("定位失败,用户拒绝请求地理定位"); 
+					alert("Location failure, user refuses to request geolocation."); 
 				break; 
 				case error.POSITION_UNAVAILABLE: 
-					alert("定位失败,位置信息是不可用"); 
+					alert("Location failure, location information is unavailable."); 
 				break; 
 				case error.TIMEOUT: 
-					alert("定位失败,请求获取用户位置超时"); 
+					alert("Location failure, request for user location timeout."); 
 				break; 
 				case error.UNKNOWN_ERROR: 
-					alert("定位失败,未知错误"); 
+					alert("Location failure, unknown error"); 
 				break; 
 			} 
 			//PC test
@@ -327,7 +328,7 @@ new Vue({
 				return;
 			}
 			
-			var color = this.colors[index % this.colors.length];
+			var color = this.colors[0]; //index % this.colors.length
 			var content = data.content;
 			if(data.type === 0){
 				for (var i = 0; i < this.typeOptions.length; i++) {
@@ -371,19 +372,23 @@ new Vue({
 		},
 		//查询
 		getList: function(){
-			var user = JSON.parse(sessionStorage.getItem('user'));
 
-			var _this = this;
 			var url = baseUrl + "api/content/findList";
 			var params = {
-					user: user.pid
+					user: this.user.pid
 			};
+			var _this = this;
 			ajaxReq(url, params, function(res){
 				if(res.code > 0){
 					console.log(res.data);
 					for (var i = 0; i < res.data.length; i++) {
 						_this.drawPolyline(res.data[i], i);
 					}
+				}else{
+					_this.$message({
+						message: 'Failure to obtain data.',
+						type: 'warning'
+					});
 				}
 			});
 		},
@@ -396,7 +401,7 @@ new Vue({
 		addSubmit: function () {
 			this.$refs.addForm.validate((valid) => {
 				if (valid) {
-					this.$confirm('确认提交吗？', '提示', {}).then(() => {
+					this.$confirm('Confirmation of submission?', 'Tips', {}).then(() => {
 						var url = baseUrl + "api/content/add";
 						var params = Object.assign({}, this.addForm);
 						params.path = JSON.stringify(this.path);
@@ -406,7 +411,7 @@ new Vue({
 							self.addLoading = false;
 							if(res.code > 0){
 								self.$message({
-									message: '新增成功',
+									message: 'success',
 									type: 'success'
 								});
 								self.addFormVisible = false;
@@ -414,7 +419,7 @@ new Vue({
 								self.reset();
 							}else{
 								self.$message({
-									message: res.msg,
+									message: 'failed',
 									type: 'warning'
 								})
 							}
@@ -425,7 +430,7 @@ new Vue({
 		},
 		//退出登录
 		logout: function () {
-			this.$confirm('确认退出吗?', '提示', {
+			this.$confirm('Confirmation of withdrawal?', 'Tips', {
 				//type: 'warning'
 			}).then(() => {
 				var url = baseUrl + "api/user/logout";
@@ -455,8 +460,8 @@ new Vue({
 		},
 	},
 	mounted: function() {
-		var user = JSON.parse(sessionStorage.getItem('user'));
-		if(user == null){
+		this.user = JSON.parse(sessionStorage.getItem('user'));
+		if(this.user == null){
 	   		window.location.href = "login.html";
 		}
 		this.isLogin(this.getLocation);

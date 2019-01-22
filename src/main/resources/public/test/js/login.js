@@ -27,10 +27,10 @@ function ajaxReq(url, param, callback, cp){
             },
             rules: {
               username: [
-                { required: true, message: '请输入账号', trigger: 'blur' },
+                { required: true, message: 'Please enter your username。', trigger: 'blur' },
               ],
               password: [
-                { required: true, message: '请输入密码', trigger: 'blur' },
+                { required: true, message: 'Please enter your password。', trigger: 'blur' },
               ]
             },
             checked: true
@@ -63,7 +63,7 @@ function ajaxReq(url, param, callback, cp){
 						}
 					}else{
 						self.$message({
-							message: res.msg,
+							message: 'failed',
 							type: 'warning'
 						})
 					}
