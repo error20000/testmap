@@ -20,46 +20,11 @@ import com.jian.tools.core.Tips;
 @Component
 public class VerifyConfig {
 	
-	public static String loginUserCache = "CACHE_SSO_USER";
-	public static String loginUserToken = "CACHE_SSO_USER_TOKEN";
-
 	public static Config config = null;
 	
 	@Autowired
 	public void setConfig(Config config){
 		VerifyConfig.config = config;
-	}
-
-	/**
-	 * 获取登录用户信息
-	 * @param req
-	 * @return
-	 */
-	public static String getUserInfo(HttpServletRequest req){
-		//TODO do something
-		
-		return null;
-	}
-	
-	
-	/**
-	 * 获取登录用户信息
-	 * @param req
-	 * @return T
-	 */
-	public static <T> T getUserInfo(HttpServletRequest req, Class<T> clzz){
-		//TODO do something
-		
-		return null;
-	}
-
-	/**
-	 * 写入登录用户信息
-	 * @return
-	 */
-	public static synchronized void setUserInfo(HttpServletRequest req, Map<String, Object> ssoUser){
-		//TODO do something
-		
 	}
 
 	/**

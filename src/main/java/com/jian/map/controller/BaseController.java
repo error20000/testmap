@@ -48,19 +48,6 @@ public abstract class BaseController<T> {
 		return VerifyConfig.verifyAuth(req);
 	}
 	
-	//获取用户信息
-	public String getUserInfo(HttpServletRequest req){
-	
-		return VerifyConfig.getUserInfo(req);
-	}
-	
-	//获取用户信息
-	public <E> E getUserInfo(HttpServletRequest req, Class<E> clzz){
-	
-		return VerifyConfig.getUserInfo(req, clzz);
-	}
-	
-	
 	
     public String add(HttpServletRequest req) {
 		initService();

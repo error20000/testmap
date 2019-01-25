@@ -15,21 +15,21 @@ public class Content  extends Base<Content> {
 	
 	//field
 	@PrimaryKey(type=PrimaryKeyType.AUTO_INCREMENT)
-	@Excel(name="编号", sort=0, length="11", isNull=0 )
+	@Excel(name="pid", sort=0, length="11", isNull=0 )
 	private int pid;
-	@Excel(name="用户pid", sort=1, value="0", length="11", isNull=1 )
+	@Excel(name="user pid", sort=1, value="0", length="11", isNull=1 )
 	private int user;
-	@Excel(name="日期", sort=2, length="20", isNull=1 )
+	@Excel(name="date", sort=2, length="20", isNull=1 )
 	private String date;
-	@Excel(name="用户位置", sort=3, length="255", isNull=1 )
+	@Excel(name="user location", sort=3, length="255", isNull=1 )
 	private String local;
-	@Excel(name="用户绘制区域", sort=4, length="", isNull=1 )
+	@Excel(name="draw area", sort=4, length="", isNull=1 )
 	private String path;
-	@Excel(name="用户评价类型", sort=5, value="0", length="4", isNull=1 )
+	@Excel(name="type", sort=5, value="0", length="4", isNull=1 )
 	private int type;
-	@Excel(name="用户选择的评价", sort=6, length="10", isNull=1 )
+	@Excel(name="option", sort=6, length="10", isNull=1 )
 	private String option;
-	@Excel(name="用户自定义的评价", sort=7, length="255", isNull=1 )
+	@Excel(name="content", sort=7, length="255", isNull=1 )
 	private String content;
 	
 	//get set

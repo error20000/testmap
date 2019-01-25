@@ -1,8 +1,13 @@
 package com.jian.map.controller;
 
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,15 +17,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jian.annotation.API;
 import com.jian.annotation.ParamsInfo;
+import com.jian.map.config.Config;
+import com.jian.map.entity.Content;
+import com.jian.map.entity.User;
+import com.jian.map.service.ContentService;
 import com.jian.tools.core.JsonTools;
 import com.jian.tools.core.ResultKey;
 import com.jian.tools.core.ResultTools;
 import com.jian.tools.core.Tips;
 import com.jian.tools.core.Tools;
-import com.jian.map.config.Config;
-import com.jian.map.entity.Content;
-import com.jian.map.entity.User;
-import com.jian.map.service.ContentService;
 
 @Controller
 @RequestMapping("/api/content")
@@ -221,8 +226,8 @@ public class ContentController extends BaseController<Content> {
 	public String findList(HttpServletRequest req) {
 		return super.findList(req);
 	}
-	
 
+	@Override
 	@RequestMapping("/findAll")
     @ResponseBody
 	@API(name="查询所有", 
@@ -238,6 +243,90 @@ public class ContentController extends BaseController<Content> {
 		return super.findAll(req);
 	}
 	
-	//TODO 自定义方法
+	@RequestMapping("/excel")
+    @ResponseBody
+	@API(name="导出excel", 
+		info="", 
+		request={
+		}, 
+		response={
+				@ParamsInfo(name=ResultKey.CODE, type="int", info="返回码"),
+				@ParamsInfo(name=ResultKey.MSG, type="String", info="状态描述"),
+				@ParamsInfo(name=ResultKey.DATA, type="Array", info="数据集"),
+		})
+	public String excel(HttpServletRequest req, HttpServletResponse resp) {
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}
+		//查询
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, Content.class);
+		if(condition == null || condition.isEmpty()){
+			return ResultTools.custom(Tips.ERROR211, "查询条件").toJSONString();
+		}
+		List<Content> list = service.findList(condition);
+
+		//执行
+		resp.addHeader("Content-Disposition","attachment;filename=content.csv");
+		// response.addHeader("Content-Length", "" + JSONArray.fromObject(list).toString().getBytes().length);
+		resp.setContentType("application/octet-stream;charset=utf-8");
+		try {
+			OutputStream toClient = new BufferedOutputStream(resp.getOutputStream());
+			//header
+			String head = "pid,user pid,date,user location,draw area,option,content";
+			head += "\n";
+			toClient.write(head.getBytes("utf-8"));
+			//遍历导出数据
+			for (Content node : list) {
+				String str = node.getPid()+",";
+				str += node.getUser()+",";
+				str += "\"" + node.getDate()+ "\""+",";
+				str += "\"" + node.getLocal()+ "\""+",";
+				str += "\"" + node.getPath()+ "\""+",";
+				str += "\"" + (Tools.isNullOrEmpty(node.getOption()) ? "" : node.getOption().replace("\"", "\"\""))+ "\""+",";
+				str += "\"" + (Tools.isNullOrEmpty(node.getContent()) ? "" : node.getContent().replace("\"", "\"\""))+ "\""+",";
+				str +=  "\n";
+				toClient.write(str.getBytes("utf-8"));
+			}
+			
+			toClient.flush();
+			toClient.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
 	
+	//TODO 自定义方法
+
+	
+	private User getLoginUser(HttpServletRequest req){
+
+		HttpSession session = req.getSession();
+		User user = (User)session.getAttribute(config.login_session_key);
+		
+		return user;
+	}
 }
