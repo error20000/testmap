@@ -14,9 +14,16 @@
 <body>
   <div id="app">
 		<div id="gmap" style="width:100%;height:100%;">In the process of positioning... </div>
-		<div id="controlDiv" style="display: none;width: 40px;height: 40px;">
+		<div id="pointDiv" style="display: none;width: 40px;height: 40px;">
 			<el-button icon="fa fa-map-marked-alt fa-1x"></el-button>
 		</div>
+		<div id="lineDiv" style="display: none;width: 40px;height: 40px;">
+			<el-button icon="fa fa-slash fa-1x"></el-button>
+		</div>
+		<div id="spaceDiv" style="display: none;width: 40px;height: 40px;">
+			<el-button icon="far fa-square fa-1x"></el-button>
+		</div>
+		
 		<!--新增界面-->
 		<el-dialog title="" :visible.sync="addFormVisible" :close-on-click-modal="false" width="95%" :show-close="false">
 			<el-form size="mini" :model="addForm" label-width="0px" :rules="addFormRules" ref="addForm">
