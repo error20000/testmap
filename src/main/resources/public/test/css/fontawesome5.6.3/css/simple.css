@@ -190,8 +190,14 @@ readers do not read off random characters that represent icons */
 .fa-slash:before {
   content: "\f715"; }
   
-.fa-map-marked-alt:before {
-  content: "\f5a0"; }
+.fa-map-marker-alt:before {
+  content: "\f3c5"; }
+  
+.fa-circle:before {
+  content: "\f111"; }
+  
+.fa-draw-polygon:before {
+  content: "\f5ee"; }
 
 .sr-only {
   border: 0;

@@ -175,8 +175,70 @@ body {
 .el-message-box {
 	width: 70% !important;
 }
+.el-checkbox {
+    display: block !important;
+    margin-left: 30px !important;
+}
 
 .gm-style-iw img{
 	max-width: 100% !important;
 }
+
+/* .control-button{
+	background: none rgb(255, 255, 255);
+    border: 0px;
+    margin: 10px;
+    padding: 0px;
+    position: absolute;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 2px;
+    height: 40px;
+    width: 40px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
+    overflow: hidden;
+    display: none;
+    color: #666666;
+    margin-bottom: -10px;
+} */
+
+.control-button{
+	background: none;
+    display: block;
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+    width: 40px;
+    height: 40px;
+    top: 0px;
+    left: 0px;
+    color: #666666;
+}
+
+.control-pan{
+	user-select: none;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px -1px;
+    border-radius: 2px;
+    cursor: pointer;
+    background-color: #ffffff;
+    margin: 10px;
+    width: 40px;
+    height: 204px;
+    display: none;
+}
+
+.control-line{
+	position: relative; 
+	overflow: hidden; 
+	width: 30px; 
+	height: 1px; 
+	margin: 0px 5px; 
+	background-color: rgb(230, 230, 230); 
+	top: 0px;
+}
+
 
