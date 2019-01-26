@@ -218,6 +218,9 @@ body {
     left: 0px;
     color: #666666;
 }
+.control-button.active{
+    color: #000000;
+}
 
 .control-pan{
 	user-select: none;

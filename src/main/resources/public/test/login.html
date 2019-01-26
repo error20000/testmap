@@ -5,13 +5,21 @@
   <title>Area of geographical perception</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, minimal-ui" >
   <!-- 引入样式 -->
+  <link rel="stylesheet" href="css/fontawesome5.6.3/css/simple.css">
   <link rel="stylesheet" href="css/login.css">
   <link href="https://cdn.bootcss.com/element-ui/2.4.0/theme-chalk/index.css" rel="stylesheet">
 </head>
 <body>
   <div id="app">
+  	
+  	<div v-show="!preloading" class="el-loading-mask" style="background-color: rgba(255,255,255,1);">
+	   <div class="el-loading-spinner">
+	    <i class="fa fa-spinner fa-pulse"></i>
+ 	    <p class="el-loading-text">Loading...</p>
+	   </div>
+    </div>
   
-     <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-position="left" label-width="0px" class="demo-ruleForm login-container">
+     <el-form v-show="preloading" :model="ruleForm" :rules="rules" ref="ruleForm" label-position="left" label-width="0px" class="demo-ruleForm login-container">
 	    <h3 class="title">Area of geographical perception</h3>
 	    <el-form-item prop="username">
 	      <el-input type="text" v-model="ruleForm.username" auto-complete="off" placeholder="username"></el-input>
@@ -21,7 +29,7 @@
 	    </el-form-item>
 	    <!-- <el-checkbox v-model="checked" checked class="remember">remember password </el-checkbox> -->
 	    <el-form-item style="width:100%;">
-	      <el-button type="primary" style="width:100%;" @click.native.prevent="handleSubmit" :loading="logining">Login</el-button>
+	      <el-button type="primary" style="width:100%;" @click.native.prevent="handleSubmit" :disabled="logining">Login</el-button>
 	    </el-form-item>
 	    <el-form-item style="width:100%;margin-top: -16px;">
 	      <el-button style="width:100%;" @click.native.prevent="handleRegister">Register</el-button>

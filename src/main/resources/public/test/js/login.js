@@ -22,6 +22,7 @@ function ajaxReq(url, param, callback, cp){
       el: '#app',
       data: function() {
         return {
+        	preloading: false,
             logining: false,
             ruleForm: {
               username: '',
@@ -156,7 +157,7 @@ function ajaxReq(url, param, callback, cp){
           }
         },
     	mounted: function() {
-    		
+    		this.preloading = true;
     	}
     });
 

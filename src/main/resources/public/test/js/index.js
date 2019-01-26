@@ -39,6 +39,8 @@ new Vue({
 			mouseupListener: '',
 			polylineStrokeWeight: 8,
 			drawType: 0, 
+			drawStartEvent: '',
+			drawEndEvent: '',
 			path: [],
 			marker: '',
 			user: '',
@@ -256,7 +258,10 @@ new Vue({
 			//clear status
 			this.canDraw = false;
 			this.canMove = false;
-			this.drawType = 0;
+		},
+		clearDrawData: function(){
+			this.path = [];
+			this.marker = '';
 		},
 		
 		//point control
@@ -272,6 +277,7 @@ new Vue({
 		handleControlPoint: function(event){
 			//clear
 			this.clearControlListener();
+			this.clearDrawData();
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -296,6 +302,7 @@ new Vue({
 		handleControlLine: function(event){
 			//clear
 			this.clearControlListener();
+			this.clearDrawData();
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -320,6 +327,7 @@ new Vue({
 		handleControlSpace: function(event){
 			//clear
 			this.clearControlListener()
+			this.clearDrawData();
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -343,7 +351,8 @@ new Vue({
 		},
 		handleControlCircle: function(event){
 			//clear
-			this.clearControlListener()
+			this.clearControlListener();
+			this.clearDrawData();
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -362,12 +371,19 @@ new Vue({
 //			this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
 			let _this = this;
 			google.maps.event.addDomListener(div, 'click', function(event) {
+				console.log(event);
 				_this.handleControlPolygon(event);
+				/*let pe = event.target.parentNode.parentNode.childNodes;
+				for (var i = 0; i < pe.length; i++) {
+					pe[i].className = 'control-button';
+				}
+				event.target.parentNode.className = 'control-button active';*/
 			});
 		},
 		handleControlPolygon: function(event){
 			//clear
-			this.clearControlListener()
+			this.clearControlListener();
+			this.clearDrawData();
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -410,6 +426,8 @@ new Vue({
 						lng: center.lng()
 				};
 				console.log(point.lat+", "+point.lng);
+				this.drawStartEvent = event;
+				this.drawEndEvent = event;
 				this.path.push(point);
 				//move
 				this.canMove = true;
@@ -442,21 +460,23 @@ new Vue({
 					});
 					//event
 					let _this = this;
+					google.maps.event.addListener(this.marker , 'mousemove', function(event) {
+						_this.handleMousemove(event);
+					});
 					google.maps.event.addListener(this.marker , 'mouseup', function(event) {
 						_this.handleMouseup(event);
 					});
 				}else if(this.drawType === 4){ //circle
-					this.marker = new google.maps.google.maps.Circle({
+					this.marker = new google.maps.Circle({
 						map: this.map,
 						center: this.path[0],
-						
-						bounds: {
-							sw: this.path[0],
-							ne: this.path[1]
-						}
+						radius: 0
 					});
 					//event
 					let _this = this;
+					google.maps.event.addListener(this.marker , 'mousemove', function(event) {
+						_this.handleMousemove(event);
+					});
 					google.maps.event.addListener(this.marker , 'mouseup', function(event) {
 						_this.handleMouseup(event);
 					});
@@ -468,6 +488,9 @@ new Vue({
 					});
 					//event
 					let _this = this;
+					google.maps.event.addListener(this.marker , 'mousemove', function(event) {
+						_this.handleMousemove(event);
+					});
 					google.maps.event.addListener(this.marker , 'mouseup', function(event) {
 						_this.handleMouseup(event);
 					});
@@ -483,22 +506,35 @@ new Vue({
 						lng: center.lng()
 				};
 				console.log(point.lat+", "+point.lng);
+				if(event.pixel){
+					this.drawEndEvent = event; //update endEvent
+				}
 
 				if(this.drawType === 1){ //point
 					//do nothing
 				}else if(this.drawType === 3){ //space
 					this.path.splice(1, 1, point);
-					console.log(this.path);
-					this.marker.setBounds({
-						south: this.path[0].lat,
-						west: this.path[0].lng,
-						north: this.path[1].lat,
-						east: this.path[1].lng
-					});
-				}else if(this.drawType === 4){ //circle
-					this.path.splice(2, 1, point);
-					//this.marker.setBounds(this.path);
+					if(this.drawEndEvent.pixel.x <= this.drawStartEvent.pixel.x){
+						this.marker.setBounds({
+							south: this.path[1].lat,
+							west: this.path[1].lng,
+							north: this.path[0].lat,
+							east: this.path[0].lng
+						});
+					}else{
+						this.marker.setBounds({
+							south: this.path[0].lat,
+							west: this.path[0].lng,
+							north: this.path[1].lat,
+							east: this.path[1].lng
+						});
+					}
 					
+				}else if(this.drawType === 4){ //circle
+					this.path.splice(1, 1, point);
+					let c = this.lonLatToMercator(this.path[0].lng, this.path[0].lat);
+					let p = this.lonLatToMercator(this.path[1].lng, this.path[1].lat);
+					this.marker.setRadius(Math.sqrt(Math.pow(p.x-c.x,2) + Math.pow(p.y-c.y,2)));
 				}else if(this.drawType === 2 || this.drawType === 5){ //line polygon
 					console.log(this.drawType);
 					this.path.push(point);
@@ -513,12 +549,20 @@ new Vue({
 				this.clearControlListener();
 				//show window
 				setTimeout(() => {
-					this.addFormVisible = true;
+					//this.addFormVisible = true;
 				}, 1000);
 			}
 			
 		},
-		
+		lonLatToMercator: function(lon, lat){
+			var toX = lon * 20037508.342789244 / 180;
+            var toY = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
+            toY = toY * 20037508.342789244 / 180;
+            return {
+            	x: toX,
+            	y: toY
+            };
+		},
 		
 		
 		drawPolyline: function(data, index){
@@ -558,8 +602,6 @@ new Vue({
 		},
 		//重置
 		reset: function(){
-			this.path = [];
-			this.polyline = "";
 			this.addForm = {
 				local: '',
 				path: [],
@@ -567,6 +609,9 @@ new Vue({
 				option: [],
 				content: ''
 			};
+			this.path = [];
+			this.marker.setMap(null);
+			this.marker = "";
 		},
 		//查询
 		getList: function(){
@@ -590,8 +635,11 @@ new Vue({
 				}
 			});
 		},
-		//新增评论
+		//close
 		addClose: function () {
+			//clear
+			this.clearControlListener();
+			this.reset();
 			this.addFormVisible = false;
 			this.addLoading = false;
 			this.$refs.addForm.resetFields();
