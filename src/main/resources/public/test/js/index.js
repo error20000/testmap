@@ -39,8 +39,8 @@ new Vue({
 			mouseupListener: '',
 			polylineStrokeWeight: 8,
 			drawType: 0, 
-			drawStartEvent: '',
-			drawEndEvent: '',
+			drawStart: '',
+			drawEnd: '',
 			path: [],
 			marker: '',
 			user: '',
@@ -52,7 +52,7 @@ new Vue({
 				local: '',
 				path:'',
 				type:'',
-				option: [],
+				option: '',
 				content:''
 			},
 			addFormRules:{
@@ -230,7 +230,7 @@ new Vue({
 	        //control
 	        this.initControl();
 	        //query data
-			this.getList();
+			this.handleType();
 		},
 		initControl(){
 			var div = document.getElementById('controlDiv');
@@ -263,12 +263,19 @@ new Vue({
 			this.path = [];
 			this.marker = '';
 		},
+		changeActive: function(event){
+			let pe = event.target.parentNode.parentNode.childNodes;
+			for (var i = 0; i < pe.length; i++) {
+				if(String(pe[i].className).indexOf('control-button') != -1){
+					pe[i].className = 'control-button';
+				}
+			}
+			event.target.parentNode.className = 'control-button active';
+		},
 		
 		//point control
 		initControlPoint: function(){
 			let div = document.getElementById('pointDiv');
-//			div.style.display = 'block';
-//			this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
 			let _this = this;
 			google.maps.event.addDomListener(div, 'click', function(event) {
 				_this.handleControlPoint(event);
@@ -292,8 +299,6 @@ new Vue({
 		//line control
 		initControlLine: function(){
 			let div = document.getElementById('lineDiv');
-//			div.style.display = 'block';
-//			this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
 			let _this = this;
 			google.maps.event.addDomListener(div, 'click', function(event) {
 				_this.handleControlLine(event);
@@ -317,8 +322,6 @@ new Vue({
 		//space control
 		initControlSpace: function(){
 			let div = document.getElementById('spaceDiv');
-//			div.style.display = 'block';
-//			this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
 			let _this = this;
 			google.maps.event.addDomListener(div, 'click', function(event) {
 				_this.handleControlSpace(event);
@@ -342,8 +345,6 @@ new Vue({
 		//circle control
 		initControlCircle: function(){
 			let div = document.getElementById('circleDiv');
-//			div.style.display = 'block';
-//			this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
 			let _this = this;
 			google.maps.event.addDomListener(div, 'click', function(event) {
 				_this.handleControlCircle(event);
@@ -367,17 +368,10 @@ new Vue({
 		//polygon control
 		initControlPolygon: function(){
 			let div = document.getElementById('polygonDiv');
-//			div.style.display = 'block';
-//			this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
 			let _this = this;
 			google.maps.event.addDomListener(div, 'click', function(event) {
 				console.log(event);
 				_this.handleControlPolygon(event);
-				/*let pe = event.target.parentNode.parentNode.childNodes;
-				for (var i = 0; i < pe.length; i++) {
-					pe[i].className = 'control-button';
-				}
-				event.target.parentNode.className = 'control-button active';*/
 			});
 		},
 		handleControlPolygon: function(event){
@@ -426,8 +420,8 @@ new Vue({
 						lng: center.lng()
 				};
 				console.log(point.lat+", "+point.lng);
-				this.drawStartEvent = event;
-				this.drawEndEvent = event;
+				this.drawStart = point;
+				this.drawEnd = point;
 				this.path.push(point);
 				//move
 				this.canMove = true;
@@ -506,27 +500,28 @@ new Vue({
 						lng: center.lng()
 				};
 				console.log(point.lat+", "+point.lng);
-				if(event.pixel){
-					this.drawEndEvent = event; //update endEvent
-				}
+				this.drawEnd = point;
 
 				if(this.drawType === 1){ //point
 					//do nothing
 				}else if(this.drawType === 3){ //space
 					this.path.splice(1, 1, point);
-					if(this.drawEndEvent.pixel.x <= this.drawStartEvent.pixel.x){
-						this.marker.setBounds({
-							south: this.path[1].lat,
-							west: this.path[1].lng,
-							north: this.path[0].lat,
-							east: this.path[0].lng
-						});
-					}else{
+					if(Math.sign(this.drawStart.lng) == Math.sign(this.drawEnd.lng) 
+							&& this.drawEnd.lng - this.drawStart.lng >= 0
+							|| Math.sign(this.drawStart.lng) != Math.sign(this.drawEnd.lng)
+							&& this.drawEnd.lng - this.drawStart.lng <= 0){
 						this.marker.setBounds({
 							south: this.path[0].lat,
 							west: this.path[0].lng,
 							north: this.path[1].lat,
 							east: this.path[1].lng
+						});
+					}else{
+						this.marker.setBounds({
+							south: this.path[1].lat,
+							west: this.path[1].lng,
+							north: this.path[0].lat,
+							east: this.path[0].lng
 						});
 					}
 					
@@ -549,7 +544,7 @@ new Vue({
 				this.clearControlListener();
 				//show window
 				setTimeout(() => {
-					//this.addFormVisible = true;
+					this.addFormVisible = true;
 				}, 1000);
 			}
 			
@@ -565,55 +560,109 @@ new Vue({
 		},
 		
 		
-		drawPolyline: function(data, index){
+		drawMarker: function(data, index){
 			if(!data.path){
 				return;
 			}
+			let paths = JSON.parse(data.path);
+			if(paths.length == 0){
+				return;
+			}
 			
-			var color = this.colors[0]; //index % this.colors.length
-			var content = data.content;
-			if(data.type === 0){
-				for (var i = 0; i < this.typeOptions.length; i++) {
-					if(this.typeOptions[i].value === data.option){
-						content = this.typeOptions[i].label;
-						break;
+			let content = [];
+			let color = this.colors[0]; //index % this.colors.length
+			let options = data.option;
+			if(options){
+				let opt = options.split(",");
+				for (var i = 0; i < opt.length; i++) {
+					for (var j = 0; j < this.typeOptions.length; j++) {
+						if(opt[i] === this.typeOptions[j].value){
+							content.push(this.typeOptions[j].label);
+						}
 					}
 				}
 			}
 			
-			var path = JSON.parse(data.path);
-			var marker = new google.maps.Polygon({
-				strokeColor: color,
-				fillColor: color,
-				fillOpacity: 0.5,
-				map: this.map,
-				path: path
-			});
-			var infowindow = new google.maps.InfoWindow({
-				content: content,
-				position: path[0]
-			});
-			//infowindow.open(this.map, marker);
+			let marker;
+			let position;
+			if(data.type === 1){ //point
+				marker = new google.maps.Marker({
+					map: this.map,
+					position: paths[0]
+				});
+				position = paths[0];
+			}else if(data.type === 2){ //line
+				marker = new google.maps.Polyline({
+					strokeWeight: this.polylineStrokeWeight,
+					strokeColor: color,
+					map: this.map,
+					path: paths
+				});
+				position = paths[Math.floor(paths.length/2)];
+			}else if(data.type === 3){ //space
+				marker = new google.maps.Rectangle({
+					map: this.map
+				});
+				if(Math.sign(paths[0].lng) == Math.sign(paths[1].lng) 
+						&& paths[1].lng - paths[0].lng >= 0
+						|| Math.sign(paths[0].lng) != Math.sign(paths[1].lng)
+						&& paths[1].lng - paths[0].lng <= 0){
+					marker.setBounds({
+						south: paths[0].lat,
+						west: paths[0].lng,
+						north: paths[1].lat,
+						east: paths[1].lng
+					});
+				}else{
+					marker.setBounds({
+						south: paths[1].lat,
+						west: paths[1].lng,
+						north: paths[0].lat,
+						east: paths[0].lng
+					});
+				}
+			}else if(data.type === 4){ //circle
+				marker = new google.maps.Circle({
+					map: this.map,
+					center: paths[0],
+				});
+				let c = this.lonLatToMercator(paths[0].lng, paths[0].lat);
+				let p = this.lonLatToMercator(paths[1].lng, paths[1].lat);
+				marker.setRadius(Math.sqrt(Math.pow(p.x-c.x,2) + Math.pow(p.y-c.y,2)));
+			}else if(data.type === 5){ //polygon
+				marker = new google.maps.Polygon({
+					strokeColor: color,
+					fillColor: color,
+					fillOpacity: 0.5,
+					map: this.map,
+					paths: paths
+				});
+			}
 			
-			//事件
+			var infowindow = new google.maps.InfoWindow({
+				content: content.join('<br/>'),
+				position: paths[0]
+			});
+			
+			//event
 			google.maps.event.addListener(marker, 'click', function(event) {
 				infowindow.open(this.map, marker);
 			});
 		},
-		//重置
+		//reset
 		reset: function(){
 			this.addForm = {
 				local: '',
-				path: [],
+				path: '',
 				type: '',
-				option: [],
+				option: '',
 				content: ''
 			};
 			this.path = [];
 			this.marker.setMap(null);
 			this.marker = "";
 		},
-		//查询
+		//query
 		getList: function(){
 
 			var url = baseUrl + "api/content/findList";
@@ -625,7 +674,7 @@ new Vue({
 				if(res.code > 0){
 					console.log(res.data);
 					for (var i = 0; i < res.data.length; i++) {
-						_this.drawPolyline(res.data[i], i);
+						_this.drawMarker(res.data[i], i);
 					}
 				}else{
 					_this.$message({
@@ -635,7 +684,17 @@ new Vue({
 				}
 			});
 		},
-		//close
+		handleType(){
+			var url = baseUrl + "api/options/findAll";
+			ajaxReq(url, params, function(res){
+				self.addLoading = false;
+				if(res.code > 0){
+					
+				}
+			});
+			this.getList();
+		},
+		//add
 		addClose: function () {
 			//clear
 			this.clearControlListener();
@@ -650,6 +709,7 @@ new Vue({
 					this.$confirm('Confirmation of submission?', 'Tips', {}).then(() => {
 						var url = baseUrl + "api/content/add";
 						var params = Object.assign({}, this.addForm);
+						params.type = this.drawType;
 						params.path = JSON.stringify(this.path);
 						params.option = this.addForm.option.join(',');
 						var self = this;
