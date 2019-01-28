@@ -88,7 +88,7 @@ function ajaxReq(url, param, callback, cp){
 						// sessionStorage.setItem('loginTime', new
 						// Date().getTime());
 						if(res.data.admin === 1){
-							window.location.href = 'index2.html';
+							window.location.href = 'admin.html';
 						}else{
 							window.location.href = 'index.html';
 						}

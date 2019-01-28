@@ -19,7 +19,7 @@ public class Content  extends Base<Content> {
 	private int pid;
 	@Excel(name="user pid", sort=1, value="0", length="11", isNull=1 )
 	private int user;
-	@Excel(name="date", sort=2, length="20", isNull=1 )
+	@Excel(name="日期", sort=2, length="20", isNull=1 )
 	private String date;
 	@Excel(name="user location", sort=3, length="255", isNull=1 )
 	private String local;

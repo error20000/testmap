@@ -1,4 +1,7 @@
 var baseUrl = '../';
+var changePwdUrl = baseUrl + "api/user/changePWD";
+var logoutUrl = baseUrl + "api/user/logout";
+var isLoginUrl = baseUrl + "api/user/isLogin";
 
 function ajaxReq(url, param, callback, cp){
 	$.ajax({
@@ -21,396 +24,168 @@ function ajaxReq(url, param, callback, cp){
 
 new Vue({
     el: '#app',
-    data: function(){
-		return {
-			sysName:'',
-			collapsed:false,
-			sysUserName: '',
-			sysUserAvatar: '',
-			colors: COLORS,
-			map: '',
-			zoom: 12,
-			path: [],
-			canDraw: false,
-			canMove: false,
-			polyline: '',
-			user: '',
+    data() {
+        return {
+          sysName: "Platform ",
+          sysUserName: "admin",
+          menus: [],
+      	  preloading: false,
+          //pwd
+          pwdFormVisible: false,
+          pwdLoading: false,
+          pwdFormRules: {
+            oldPwd: [
+              { required: true, message: "Please enter the original password.", trigger: "blur" }
+            ],
+            newPwd: [{ required: true, message: "Please enter the new password.", trigger: "blur" }],
+            newPwd2: [
+              { required: true, message: "Please enter the new password again.", trigger: "blur" },
+              {
+                validator: (rule, value, callback) => {
+                  if (value !== this.pwdForm.newPwd) {
+                    callback(new Error("Passwords does not match!"));
+                  } else {
+                    callback();
+                  }
+                },
+                trigger: "blur"
+              }
+            ]
+          },
+          pwdForm: {
+            oldPwd: "",
+            newPwd: "",
+            newPwd2: ""
+          }
+        };
+      },
+      methods: {
+        handleSelect: function(index) {
+          this.showIframe(index);
+        },
+		showIframe: function(index){
+			let url = "";
 			
-			//新增界面数据
-			addFormVisible: false,//新增界面是否显示
-			addLoading: false, //loading
-			addForm: {
-				local: '',
-				path:'',
-				type:'',
-				option: '',
-				content:''
-			},
-			addFormRules:{
-				type: [
-					{  required: true, message: 'please choose', trigger: 'blur' }
-				],
-				option: [
-					{ validator: (rule, value, callback) => {
-				          if(this.addForm.type === 0 && value === "") {
-				            callback(new Error('please choose your feelings!'));
-				          } else {
-				            callback();
-				          }
-					}, trigger: 'blur' }
-				],
-				content: [
-					{ validator: (rule, value, callback) => {
-				          if(this.addForm.type === 1 && value === "") {
-				            callback(new Error('please write down your feelings!'));
-				          } else {
-				            callback();
-				          }
-					}, trigger: 'blur' }
-				]
-			},
-			typeOptions:[
-				{value: '1',label: 'It is not safe here.'},
-				{value: '2',label: 'It is safe here.'},
-				{value: '3',label: 'The traffic is so bad here.'},
-				{value: '4',label: 'The traffic is good here.'},
-				{value: '5',label: 'It is so noisy here.'},
-				{value: '6',label: 'It is so quiet here.'},
-				{value: '7',label: 'Here is in a mess.'},
-				{value: '8',label: 'It is so beautiful here.'},
-				{value: '9',label: 'I like local food.'},
-				{value: '10',label: 'I want to be here next time.'},
-				{value: '11',label: 'I will not be here next time.'}
-			]
-		}
-	},
-	methods: {
-		getLocation(){
-            var options={
-                enableHighAccuracy:true, 
-                maximumAge:1000
-            }
-            if(navigator.geolocation){
-                //浏览器支持geolocation
-                navigator.geolocation.getCurrentPosition(this.onSuccess, this.onError);
-                
-            }else{
-                //浏览器不支持geolocation
-            	alert("Browsers do not support geolocation。"); 
-            }
-        },
-        onSuccess(position){
-			console.log("===========position============");
-			console.log(position);
-            //返回用户位置
-            //经度
-            var lng = position.coords.longitude;
-            //纬度
-            var lat = position.coords.latitude;
-            //记录位置
-            this.addForm.local = JSON.stringify({lat: lat, lng: lng});
-            
-            //google 
-            this.showMap(lat, lng);
-            /*var latlon = latitude+','+longitude; 
-            var url = 'http://maps.google.cn/maps/api/geocode/json?latlng='+latlon+'&language=CN'; 
-            $.ajax({ 
-	            type: "GET", 
-	            url: url, 
-	            beforeSend: function(){ 
-	            	$("#google_geo").html('正在定位...'); 
-	            }, 
-	            success: function (json) { 
-		            if(json.status=='OK'){ 
-			            var results = json.results; 
-			            $.each(results,function(index,array){ 
-				            if(index==0){ 
-				            	$("#google_geo").html(array['formatted_address']); 
-				            } 
-			            }); 
-		            } 
-	            }, 
-	            error: function (XMLHttpRequest, textStatus, errorThrown) { 
-	            	$("#google_geo").html(latlon+"地址位置获取失败"); 
-	            } 
-            }); */
-        },
-        onError(error){ 
-			console.log("===========error============");
-			console.log(error);
-			switch(error.code) { 
-				case error.PERMISSION_DENIED: 
-					alert("Location failure, user refuses to request geolocation."); 
-				break; 
-				case error.POSITION_UNAVAILABLE: 
-					alert("Location failure, location information is unavailable."); 
-				break; 
-				case error.TIMEOUT: 
-					alert("Location failure, request for user location timeout."); 
-				break; 
-				case error.UNKNOWN_ERROR: 
-					alert("Location failure, unknown error"); 
-				break; 
-			} 
-			//PC test
-            this.showMap(30.67, 104.06);
-		},
-		showMap: function (lat, lng) {
-			var center = {
-		        lat: lat,
-		        lng: lng
-	        };
-	        this.map = new google.maps.Map(document.getElementById('gmap'), {
-		        center: center,
-		        zoom: this.zoom
-		        // mapTypeId: google.maps.MapTypeId.ROADMAP
-	        });
-	        //this.initControl();
-	        this.initMousedown();
-	        this.initMousemove();
-	        this.initMouseup();
-	        //查询数据
-			this.getList();
-		},
-		//创建控件
-		initControl: function(){
-			let _this = this;
-			var div = document.getElementById('controlDiv');
-			div.style.display = 'block';
-			this.map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);
-			google.maps.event.addDomListener(div, 'click', function(event) {
-				_this.handleControl(event);
-			});
-		},
-		handleControl: function(event){
-			if(this.canDraw){
-				this.canDraw = false;
-			}else{
-				this.canDraw = true;
-			}
-		},
-		//自定义事件
-		initMousedown: function(){
-			let _this = this;
-			google.maps.event.addListener(this.map, 'mousedown', function(event) {
-				_this.handleMousedown(event);
-			});
-		},
-		initMousemove: function(){
-			let _this = this;
-			google.maps.event.addListener(this.map, 'mousemove', function(event) {
-				_this.handleMousemove(event);
-			});
-		},
-		initMouseup: function(){
-			let _this = this;
-			google.maps.event.addListener(this.map, 'mouseup', function(event) {
-				_this.handleMouseup(event);
-			});
-		},
-		handleMousedown: function(event){
-			console.log("handleMousedown");
-			if(this.canDraw){
-				//禁止拖动
-				this.map.setOptions({draggable:false});
-				let center = event.latLng;
-				let point = {
-						lat: center.lat(),
-						lng: center.lng()
-				};
-				console.log(point.lat+", "+point.lng);
-				this.path.push(point);
-				this.polyline = new google.maps.Polyline({
-					map: this.map,
-					path: this.path
-				});
-				//开始移动
-				this.canMove = true;
+			switch (Number(index)) {
+			case 1:
+				url = 'user.html';
+				break;
+			case 2:
+				url = 'options.html';
+				break;
+			case 3:
+				url = 'comment.html';
+				break;
 				
-				//polyline mouseup
-				let _this = this;
-				google.maps.event.addListener(this.polyline, 'mouseup', function(event) {
-					_this.handleMouseup(event);
-				});
+			default:
+				break;
 			}
+			$('.content-iframe').attr('src', url);
 		},
-		handleMousemove: function(event){
-			if(this.canMove){
-				let center = event.latLng;
-				let point = {
-						lat: center.lat(),
-						lng: center.lng()
-				};
-				console.log(point.lat+", "+point.lng);
-				this.path.push(point);
-				this.polyline.setPath(this.path);
-			}
-		},
-		handleMouseup: function(event){
-			console.log("handleMouseup");
-			if(this.canDraw){
-				let center = event.latLng;
-				let point = {
-						lat: center.lat(),
-						lng: center.lng()
-				};
-				console.log(point.lat+", "+point.lng);
-				this.canMove = false;
-				this.canDraw = false;
-				//开启拖动
-				this.map.setOptions({draggable:true});
-				//弹出窗口
-				this.addFormVisible = true;
-			}
-			
-		},
-		drawPolyline: function(data, index){
-			if(!data.path){
-				return;
-			}
-			
-			var color = this.colors[data.user % this.colors.length];
-			var content = data.content;
-			if(data.type === 0){
-				for (var i = 0; i < this.typeOptions.length; i++) {
-					if(this.typeOptions[i].value === data.option){
-						content = this.typeOptions[i].label;
-						break;
+        //update pwd
+        handlepwdChange: function() {
+          this.pwdFormVisible = true;
+          this.pwdForm = {
+            oldPwd: "",
+            newPwd: "",
+            newPwd2: ""
+          };
+        },
+        pwdChangeClose: function() {
+          this.pwdFormVisible = false;
+          this.pwdLoading = false;
+          this.$refs.pwdForm.resetFields();
+        },
+        pwdChange: function() {
+          this.$refs.pwdForm.validate(valid => {
+            if (valid) {
+              this.$confirm('Confirmation of submission?', 'Tips', {}).then(() => {
+                var params = Object.assign({}, this.pwdForm);
+                delete params.newPwd2;
+                var self = this;
+                this.pwdLoading = true;
+                ajaxReq(changePwdUrl, params, function(res) {
+                  self.addLoading = false;
+                  if (res.code > 0) {
+                    self.$message({
+                      message: "success",
+                      type: "success"
+                    });
+                    self.addFormVisible = false;
+                    sessionStorage.removeItem('user');
+                    parent.window.location.href = "login.html";
+                  }else if(res.code == -206){
+					self.$message({
+							message: 'Missing parameters.',
+							type: 'warning'
+						})
+					}else if(res.code == -213){
+						self.$message({
+							message: 'Incorrect password. ',
+							type: 'warning'
+						})
+					}else if(res.code == -111){
+						self.$message({
+							message: 'Not logged in. ',
+							type: 'warning'
+						})
+					}else{
+						self.$message({
+							message: 'failed',
+							type: 'warning'
+						})
 					}
-				}
-			}
-			
-			var path = JSON.parse(data.path);
-			var marker = new google.maps.Polygon({
-				strokeColor: color,
-				fillColor: color,
-				fillOpacity: 0.5,
-				map: this.map,
-				path: path
-			});
-			var infowindow = new google.maps.InfoWindow({
-				content: content,
-				position: path[0]
-			});
-			//infowindow.open(this.map, marker);
-			
-			//事件
-			google.maps.event.addListener(marker, 'click', function(event) {
-				infowindow.open(this.map, marker);
-			});
-		},
-		//重置
-		reset: function(){
-			this.path = [];
-			this.polyline = "";
-			this.addForm = {
-				local: '',
-				path:'',
-				type:'',
-				option: '',
-				content:''
-			};
-		},
-		//查询
-		getList: function(){
-			
-			var _this = this;
-			var url = baseUrl + "api/content/findAll";
-			var params = {};
-			ajaxReq(url, params, function(res){
-				if(res.code > 0){
-					console.log(res.data);
-					for (var i = 0; i < res.data.length; i++) {
-						_this.drawPolyline(res.data[i], i);
-					}
-				}else{
-					_this.$message({
-						message: 'Failure to obtain data.',
+                });
+              });
+            }
+          });
+        },
+        //login
+        logout: function() {
+          this.$confirm("Confirmation of logout", "Tips", {
+            //type: 'warning'
+          }).then(() => {
+              var self = this;
+              var params = {};
+              ajaxReq(logoutUrl, params, function(res) {
+                if (res.code > 0) {
+                    sessionStorage.removeItem('user');
+                  parent.window.location.href = "login.html";
+                }else{
+                	self.$message({
+						message: 'failed',
 						type: 'warning'
-					});
-				}
-			});
-		},
-		//新增评论
-		addClose: function () {
-			this.addFormVisible = false;
-			this.addLoading = false;
-			this.$refs.addForm.resetFields();
-		},
-		addSubmit: function () {
-			this.$refs.addForm.validate((valid) => {
-				if (valid) {
-					this.$confirm('Confirmation of submission?', 'Tips', {}).then(() => {
-						var url = baseUrl + "api/content/add";
-						var params = Object.assign({}, this.addForm);
-						params.path = JSON.stringify(this.path);
-						var self = this;
-						this.addLoading = true;
-						ajaxReq(url, params, function(res){
-							self.addLoading = false;
-							if(res.code > 0){
-								self.$message({
-									message: 'success',
-									type: 'success'
-								});
-								self.addFormVisible = false;
-								self.getList();
-								self.reset();
-							}else{
-								self.$message({
-									message: 'failed',
-									type: 'warning'
-								})
-							}
-						});
-					});
-				}
-			});
-		},
-		//退出登录
-		logout: function () {
-			this.$confirm('Confirmation of withdrawal?', 'Tips', {
-				//type: 'warning'
-			}).then(() => {
-				var url = baseUrl + "api/user/logout";
-				var params = {};
-				ajaxReq(url, params, function(res){
-					if(res.code > 0){
-						parent.window.location.href = "login.html";
-					}
-				});
-			}).catch(() => {
-
-			});
-		},
-		//判断登录
-		isLogin: function (cb) {
-			var url = baseUrl + "api/user/isLogin";
+					})
+                }
+              });
+            }).catch(() => {});
+        },
+        isLogin: function(cb) {
 			var params = {};
-			ajaxReq(url, params, function(res){
+			ajaxReq(isLoginUrl, params, function(res){
 				if(res.code <= 0){
-					window.location.href = "login.html";
+					parent.window.location.href = "login.html";
 				}else{
 					if(typeof cb == 'function'){
 						cb();
 					}
 				}
 			});
-		},
-	},
-	mounted: function() {
+        }
+      },
+      mounted: function() {
 
-		this.user = JSON.parse(sessionStorage.getItem('user'));
-		if(this.user　==　null){
-	   		window.location.href = "login.html";
-		}
-		if(this.user.admin != 1){
-			alert("no auth!!");
-	   		window.location.href = "login.html";
-		}
-		
-		this.isLogin(this.getLocation);
-	}
+  		this.user = JSON.parse(sessionStorage.getItem('user'));
+  		if(this.user　==　null){
+  			parent.window.location.href = "login.html";
+  		}
+  		if(this.user.admin != 1){
+  			alert("no auth!");
+  			parent.window.location.href = "login.html";
+  		}
+		this.isLogin();
+		this.preloading = true;
+      }
   });
 
 function formatDate(d, s){

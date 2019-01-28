@@ -495,6 +495,131 @@ public class UserController extends BaseController<User> {
 		}
 		
 	}
+
+	@RequestMapping("/changePWD")
+    @ResponseBody
+	@API(name="修改密码", 
+		info="需登录", 
+		request={
+				@ParamsInfo(name="oldPwd", type="String", isNull=0,  info="旧密码"),
+				@ParamsInfo(name="newPwd", type="String", isNull=0,  info="新密码"),
+		}, 
+		response={
+				@ParamsInfo(name=ResultKey.CODE, type="int", info="返回码"),
+				@ParamsInfo(name=ResultKey.MSG, type="String", info="状态描述"),
+				@ParamsInfo(name=ResultKey.DATA, type="", info="数据集"),
+		})
+	public String changePWD(HttpServletRequest req) {
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+
+		User luser = getLoginUser(req);
+		if(luser == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		
+		//参数
+		String oldPwd = Tools.getReqParamSafe(req, "oldPwd");
+		String newPwd = Tools.getReqParamSafe(req, "newPwd");
+		vMap = Tools.verifyParam("oldPwd", oldPwd, 0, 0);
+		if(vMap != null){
+			return ResultTools.custom(Tips.ERROR206, "oldPwd").toJSONString();
+		}
+		vMap = Tools.verifyParam("newPwd", newPwd, 0, 0);
+		if(vMap != null){
+			return ResultTools.custom(Tips.ERROR206, "newPwd").toJSONString();
+		}
+		
+		User test = service.findOne(MapTools.custom().put("pid", luser.getPid()).build());
+		if(!test.getPassword().equals(Tools.md5(oldPwd))){
+			return ResultTools.custom(Tips.ERROR213, "密码").toJSONString();
+		}
+		
+		//保存
+		int res = service.modify(MapTools.custom().put("password", Tools.md5(newPwd)).build(), MapTools.custom().put("pid", luser.getPid()).build());
+		if(res > 0){
+			return ResultTools.custom(Tips.ERROR1).toJSONString();
+		}else{
+			return ResultTools.custom(Tips.ERROR0).put(ResultKey.DATA, res).toJSONString();
+		}
+	}
+
+	@RequestMapping("/resetPWD")
+    @ResponseBody
+	@API(name="重置密码", 
+		info="需登录", 
+		request={
+				@ParamsInfo(name="pid", type="int", isNull=0,  info="用户PID"),
+				@ParamsInfo(name="password", type="String", isNull=0,  info="新密码"),
+		}, 
+		response={
+				@ParamsInfo(name=ResultKey.CODE, type="int", info="返回码"),
+				@ParamsInfo(name=ResultKey.MSG, type="String", info="状态描述"),
+				@ParamsInfo(name=ResultKey.DATA, type="", info="数据集"),
+		})
+	public String resetPWD(HttpServletRequest req) {
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}
+		
+		//参数
+		String pid = Tools.getReqParamSafe(req, "pid");
+		String password = Tools.getReqParamSafe(req, "password");
+		vMap = Tools.verifyParam("pid", pid, 0, 0);
+		if(vMap != null){
+			return ResultTools.custom(Tips.ERROR206, "pid").toJSONString();
+		}
+		vMap = Tools.verifyParam("password", password, 0, 0);
+		if(vMap != null){
+			return ResultTools.custom(Tips.ERROR206, "password").toJSONString();
+		}
+		
+		User test = service.findOne(MapTools.custom().put("pid", pid).build());
+		if(test == null){
+			return ResultTools.custom(Tips.ERROR106, "用户").toJSONString();
+		}
+		test.setPassword(Tools.md5(password));
+		
+		//保存
+		int res = service.modify(test);
+		if(res > 0){
+			return ResultTools.custom(Tips.ERROR1).toJSONString();
+		}else{
+			return ResultTools.custom(Tips.ERROR0).put(ResultKey.DATA, res).toJSONString();
+		}
+	}
 	
 	private User getLoginUser(HttpServletRequest req){
 

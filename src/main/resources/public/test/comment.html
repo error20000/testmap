@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- css -->
+  <link href="https://cdn.bootcss.com/element-ui/2.4.0/theme-chalk/index.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/fontawesome5.6.3/css/simple.css">
+  <link rel="stylesheet" href="css/animate.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="animated fadeIn">
+  <div id="app">
+  
+  	<div v-show="!preloading" class="el-loading-mask" style="background-color: rgba(255,255,255,1);">
+	   <div class="el-loading-spinner">
+	    <i class="fa fa-spinner fa-pulse"></i>
+ 	    <p class="el-loading-text">Loading...</p>
+	   </div>
+    </div>
+    
+    <section style="padding: 20px;" v-show="preloading">
+		<!-- filter -->
+		<el-row>
+		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+			<el-col :span="24">
+				<el-form :inline="true" :model="filters" style="float: right;">
+					<el-form-item>
+						<el-input v-model="filters.user" placeholder="user"></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-input v-model="filters.start" placeholder="start date"></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-input v-model="filters.end" placeholder="end date"></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-button type="primary" @click="getList">Query</el-button>
+					</el-form-item>
+					<el-form-item>
+						<el-button @click="getExcel">Export </el-button>
+					</el-form-item>
+				</el-form>
+			</el-col>
+		</el-col>
+		</el-row>
+		
+	    <el-tabs v-model="activeTab" >
+		    <el-tab-pane label="Table" name="table">
+				<!-- list -->
+				<el-table :data="list" highlight-current-row border v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" class="mytable" >
+					<el-table-column label="Pid" prop="pid" width="120">
+					</el-table-column>
+					<el-table-column label="User" prop="user" min-width="200">
+					</el-table-column>
+					<el-table-column label="Date" prop="date" min-width="200">
+					</el-table-column>
+					<el-table-column label="Local" prop="local" min-width="200" :show-overflow-tooltip="true">
+					</el-table-column>
+					<el-table-column label="Type" prop="type" min-width="200">
+					</el-table-column>
+					<el-table-column fixed="right" label="handle" width="220">
+						<template scope="scope">
+							<el-button size="small" @click="handleEdit(scope.$index, scope.row)">Edit</el-button>
+							<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">Del</el-button>
+						</template>
+					</el-table-column>
+				</el-table>
+		
+				<!-- page tool -->
+				<el-col :span="24" class="toolbar">
+					<!-- <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">Batch remove</el-button> -->
+					<el-pagination layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="[10, 20, 50, 100]" :page-size="rows" :total="total" style="float:right;">
+					</el-pagination>
+				</el-col>
+			</el-tab-pane>
+		    <el-tab-pane label="Google Map" name="map">
+				<div id="gmap" style="width: 100%; height: 500px;"></div>
+			</el-tab-pane>
+		  </el-tabs>
+		
+	</section>
+  </div>
+</body>
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+  <!-- vue -->
+  <script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>
+  <!-- element-ui -->
+  <script src="https://cdn.bootcss.com/element-ui/2.4.0/index.js"></script>
+  <script src="https://cdn.bootcss.com/element-ui/2.4.0/locale/en.js"></script>
+  <script type="text/javascript" src="js/comment.js"></script>
+  <script>
+	  ELEMENT.locale(ELEMENT.lang.en)
+  </script>
+</html>

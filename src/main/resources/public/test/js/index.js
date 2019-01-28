@@ -1,4 +1,5 @@
 var baseUrl = '../';
+var optionsUrl = baseUrl + "api/options/all";
 
 function ajaxReq(url, param, callback, cp){
 	$.ajax({
@@ -52,7 +53,7 @@ new Vue({
 				local: '',
 				path:'',
 				type:'',
-				option: '',
+				option: [],
 				content:''
 			},
 			addFormRules:{
@@ -655,7 +656,7 @@ new Vue({
 				local: '',
 				path: '',
 				type: '',
-				option: '',
+				option: [],
 				content: ''
 			};
 			this.path = [];
@@ -685,8 +686,7 @@ new Vue({
 			});
 		},
 		handleType(){
-			var url = baseUrl + "api/options/findAll";
-			ajaxReq(url, params, function(res){
+			ajaxReq(optionsUrl, params, function(res){
 				self.addLoading = false;
 				if(res.code > 0){
 					
@@ -711,7 +711,7 @@ new Vue({
 						var params = Object.assign({}, this.addForm);
 						params.type = this.drawType;
 						params.path = JSON.stringify(this.path);
-						params.option = this.addForm.option.join(',');
+						params.option = params.option.join(',');
 						var self = this;
 						this.addLoading = true;
 						ajaxReq(url, params, function(res){

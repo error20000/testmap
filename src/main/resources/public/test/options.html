@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- css -->
+  <link href="https://cdn.bootcss.com/element-ui/2.4.0/theme-chalk/index.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/fontawesome5.6.3/css/simple.css">
+  <link rel="stylesheet" href="css/animate.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="animated fadeIn">
+  <div id="app">
+  
+  	<div v-show="!preloading" class="el-loading-mask" style="background-color: rgba(255,255,255,1);">
+	   <div class="el-loading-spinner">
+	    <i class="fa fa-spinner fa-pulse"></i>
+ 	    <p class="el-loading-text">Loading...</p>
+	   </div>
+    </div>
+    
+    <section style="padding: 20px;" v-show="preloading">
+		<!-- filter -->
+		<el-row>
+		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+			<el-col :span="6" >
+				<el-form :inline="true" :model="filters">
+					<el-form-item>
+						<el-button type="primary" @click="handleAdd">Add</el-button>
+					</el-form-item>
+				</el-form>
+			</el-col>
+			<el-col :span="18">
+				<el-form :inline="true" :model="filters" style="float: right;">
+					<!--<el-form-item>
+						<el-input v-model="filters.name" placeholder="name"></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-button type="primary" @click="getList">Query</el-button>
+					</el-form-item>-->
+				</el-form>
+			</el-col>
+		</el-col>
+		</el-row>
+
+		<!-- list -->
+		<el-table :data="list" highlight-current-row border v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" class="mytable" >
+			<el-table-column label="Option value" prop="pid" width="120">
+			</el-table-column>
+			<el-table-column label="Option label" prop="name" min-width="300">
+			</el-table-column>
+			<el-table-column label="Status" prop="status" min-width="200" :formatter="(r,c) => { return r.status ? 'Enable': 'Disable';}">
+			</el-table-column>
+			<el-table-column fixed="right" label="handle" width="220">
+				<template scope="scope">
+					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">Edit</el-button>
+					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">Del</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+
+		<!-- page tool -->
+		<el-col :span="24" class="toolbar">
+			<!-- <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">Batch remove</el-button> -->
+			<el-pagination layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="[10, 20, 50, 100]" :page-size="rows" :total="total" style="float:right;">
+			</el-pagination>
+		</el-col>
+		
+		<!-- add -->
+		<el-dialog title="ADD" :visible.sync="addFormVisible" :close-on-click-modal="false">
+			<el-form :model="addForm" label-position="top" :rules="addFormRules" ref="addForm">
+				<el-form-item label="Option label" prop="name">
+					<el-input type="text" v-model="addForm.name"></el-input>
+				</el-form-item>
+				<el-form-item label="Status" prop="status">
+					<el-radio-group v-model="addForm.status">
+				      <el-radio :label="0">Disable</el-radio>
+				      <el-radio :label="1">Enable</el-radio>
+				    </el-radio-group>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="addClose">Cancel</el-button>
+				<el-button type="primary" @click="addSubmit" :loading="addLoading">Submit</el-button>
+			</div>
+		</el-dialog>
+
+		<!-- edit -->
+		<el-dialog title="EDIT" :visible.sync="editFormVisible" :close-on-click-modal="false">
+			<el-form :model="editForm" label-position="top" :rules="editFormRules" ref="editForm">
+				<el-form-item label="Option label" prop="name">
+					<el-input type="text" v-model="editForm.name"></el-input>
+				</el-form-item>
+				<el-form-item label="Status" prop="status">
+					<el-radio-group v-model="editForm.status">
+				      <el-radio :label="0">Disable</el-radio>
+				      <el-radio :label="1">Enable</el-radio>
+				    </el-radio-group>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="editClose">Cancel</el-button>
+				<el-button type="primary" @click="editSubmit" :loading="editLoading">Submit</el-button>
+			</div>
+		</el-dialog>
+
+	</section>
+  </div>
+</body>
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+  <!-- vue -->
+  <script src="https://cdn.bootcss.com/vue/2.5.16/vue.js"></script>
+  <!-- element-ui -->
+  <script src="https://cdn.bootcss.com/element-ui/2.4.0/index.js"></script>
+  <script src="https://cdn.bootcss.com/element-ui/2.4.0/locale/en.js"></script>
+  <script type="text/javascript" src="js/options.js"></script>
+  <script>
+	  ELEMENT.locale(ELEMENT.lang.en)
+  </script>
+</html>

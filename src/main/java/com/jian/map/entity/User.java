@@ -23,7 +23,7 @@ public class User  extends Base<User> {
 	private String password;
 	@Excel(name="nick", sort=3, length="20", isNull=1 )
 	private String nick;
-	@Excel(name="admin  0：no，1：yes", sort=4, value="0", length="4", isNull=1 )
+	@Excel(name="admin  0: no, 1: yes", sort=4, value="0", length="4", isNull=1 )
 	private int admin;
 	
 	//get set

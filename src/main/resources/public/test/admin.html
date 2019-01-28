@@ -1,49 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Area of geographical perception</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, minimal-ui" >
   <!-- 引入样式 -->
-  <link rel="stylesheet" href="css/animate.css">
-  <link rel="stylesheet" href="css/index.css">
   <link href="https://cdn.bootcss.com/element-ui/2.4.0/theme-chalk/index.css" rel="stylesheet">
   <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/animate.css">
+  <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
   <div id="app">
-		<div id="gmap" style="width:100%;height:100%;">In the process of positioning... </div>
-		<div id="controlDiv" style="display: none;">
-			<el-button icon="el-icon-edit"></el-button>
-		</div>
-		<!--新增界面-->
-		<el-dialog title="" :visible.sync="addFormVisible" :close-on-click-modal="false" width="95%" :show-close="false">
-			<el-form size="mini" :model="addForm" label-width="0px" :rules="addFormRules" ref="addForm">
-				<el-form-item prop="type">
-					<el-radio v-model="addForm.type" :label="0">Please choose your feelings about this area.</el-radio>
+  
+  	<div v-show="!preloading" class="el-loading-mask" style="background-color: rgba(255,255,255,1);">
+	   <div class="el-loading-spinner">
+	    <i class="fa fa-spinner fa-pulse"></i>
+ 	    <p class="el-loading-text">Loading...</p>
+	   </div>
+    </div>
+    
+	<el-container v-show="preloading">
+	    <el-header>
+	      <el-row>
+	        <el-col :span="24" class="header">
+	          <el-col :span="4" class="logo" style="width: 210px;">
+	            {{sysName}}
+	          </el-col>
+	          <el-col :span="10">
+	            <el-menu background-color="#20a0ff" text-color="#fff" active-text-color="#ffd04b" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+	              <el-menu-item index="1" >User</el-menu-item> 
+	              <el-menu-item index="2" >Options</el-menu-item> 
+	              <el-menu-item index="3" >Comment</el-menu-item> 
+	            </el-menu>
+	          </el-col>
+	          <el-col :span="4" class="userinfo">
+					<el-dropdown>
+						<span class="el-dropdown-link userinfo-inner">
+						{{sysUserName}}<i class="el-icon-arrow-down el-icon--right"></i>
+						</span>
+						<el-dropdown-menu slot="dropdown">
+							<el-dropdown-item @click.native="handlepwdChange"><i class="fa fa-key fa-fw"></i>&nbsp;Change Password</el-dropdown-item>
+							<el-dropdown-item @click.native="logout"><i class="fa fa-power-off fa-fw"></i>&nbsp;Logout</el-dropdown-item>
+						</el-dropdown-menu>
+					</el-dropdown>
+	          </el-col>
+	        </el-col>
+	      </el-row>
+	    </el-header>
+	    <el-main class="main">
+	      <iframe class="content-iframe" src="" width="100%" height="100%"></iframe>
+	    </el-main>
+
+		<!--Change Password-->
+		<el-dialog title="Change Password" :visible.sync="pwdFormVisible" :close-on-click-modal="false">
+			<el-form :model="pwdForm"  :label-position="'top'" :rules="pwdFormRules" ref="pwdForm">
+				<el-form-item label="Original password" prop="oldPwd">
+					<el-input type="text" v-model="pwdForm.oldPwd"></el-input>
 				</el-form-item>
-				<el-form-item prop="option" v-if="addForm.type === 0">
-					<el-select v-model="addForm.option" placeholder="please choose your feelings">
-					    <el-option
-					      v-for="item in typeOptions"
-					      :key="item.value"
-					      :label="item.label"
-					      :value="item.value">
-					    </el-option>
-					 </el-select>
+				<el-form-item label="Password" prop="newPwd">
+					<el-input type="text" v-model="pwdForm.newPwd"></el-input>
 				</el-form-item>
-				<el-form-item prop="type">
-					<el-radio v-model="addForm.type" :label="1">Please write down your feelings about this area.</el-radio>
-				</el-form-item>
-				<el-form-item prop="content" v-if="addForm.type === 1">
-					<el-input type="textarea" v-model="addForm.content"></el-input>
+				<el-form-item label="Confirmed password" prop="newPwd2">
+					<el-input type="text" v-model="pwdForm.newPwd2"></el-input>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
-				<!-- <el-button @click="addClose">close</el-button> -->
-				<el-button type="primary" @click="addSubmit" :loading="addLoading">submit</el-button>
+				<el-button @click="pwdChangeClose">Cancel</el-button>
+				<el-button type="primary" @click="pwdChange" :loading="pwdLoading">Submit</el-button>
 			</div>
 		</el-dialog>
+  	</el-container>
+  	
   </div>
 </body>
   <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
