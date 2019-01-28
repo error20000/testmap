@@ -30,6 +30,7 @@ new Vue({
 			collapsed:false,
 			sysUserName: '',
 			sysUserAvatar: '',
+			user: '',
 			colors: COLORS,
 			map: '',
 			zoom: 12,
@@ -44,7 +45,7 @@ new Vue({
 			drawEnd: '',
 			path: [],
 			marker: '',
-			user: '',
+			markers: [],
 			
 			//新增界面数据
 			addFormVisible: false,//新增界面是否显示
@@ -318,7 +319,7 @@ new Vue({
 			//event
 	        this.initMousedown();
 	        this.initMousemove();
-	        //this.initMouseup();
+	        this.initMouseup();
 		},
 		//space control
 		initControlSpace: function(){
@@ -341,7 +342,7 @@ new Vue({
 			//event
 	        this.initMousedown();
 	        this.initMousemove();
-	        //this.initMouseup();
+	        this.initMouseup();
 		},
 		//circle control
 		initControlCircle: function(){
@@ -364,7 +365,7 @@ new Vue({
 			//event
 	        this.initMousedown();
 	        this.initMousemove();
-	        //this.initMouseup();
+	        this.initMouseup();
 		},
 		//polygon control
 		initControlPolygon: function(){
@@ -388,7 +389,7 @@ new Vue({
 			//event
 	        this.initMousedown();
 	        this.initMousemove();
-	        //this.initMouseup();
+	        this.initMouseup();
 		},
 		initMousedown: function(){
 			console.log("initMousedown");
@@ -532,7 +533,6 @@ new Vue({
 					let p = this.lonLatToMercator(this.path[1].lng, this.path[1].lat);
 					this.marker.setRadius(Math.sqrt(Math.pow(p.x-c.x,2) + Math.pow(p.y-c.y,2)));
 				}else if(this.drawType === 2 || this.drawType === 5){ //line polygon
-					console.log(this.drawType);
 					this.path.push(point);
 					this.marker.setPath(this.path);
 				}
@@ -544,9 +544,7 @@ new Vue({
 				//clear
 				this.clearControlListener();
 				//show window
-				setTimeout(() => {
-					this.addFormVisible = true;
-				}, 1000);
+				this.addFormVisible = true;
 			}
 			
 		},
@@ -571,18 +569,22 @@ new Vue({
 			}
 			
 			let content = [];
+			content.push("Options: ");
 			let color = this.colors[0]; //index % this.colors.length
 			let options = data.option;
 			if(options){
 				let opt = options.split(",");
 				for (var i = 0; i < opt.length; i++) {
 					for (var j = 0; j < this.typeOptions.length; j++) {
-						if(opt[i] === this.typeOptions[j].value){
-							content.push(this.typeOptions[j].label);
+						if(opt[i] == this.typeOptions[j].value){
+							content.push("&nbsp;&nbsp;"+this.typeOptions[j].label);
 						}
 					}
 				}
 			}
+			content.push("<br/>");
+			content.push("Comment: ");
+			content.push(data.content);
 			
 			let marker;
 			let position;
@@ -602,6 +604,9 @@ new Vue({
 				position = paths[Math.floor(paths.length/2)];
 			}else if(data.type === 3){ //space
 				marker = new google.maps.Rectangle({
+					strokeColor: color,
+					fillColor: color,
+					fillOpacity: 0.5,
 					map: this.map
 				});
 				if(Math.sign(paths[0].lng) == Math.sign(paths[1].lng) 
@@ -624,8 +629,11 @@ new Vue({
 				}
 			}else if(data.type === 4){ //circle
 				marker = new google.maps.Circle({
+					strokeColor: color,
+					fillColor: color,
+					fillOpacity: 0.5,
 					map: this.map,
-					center: paths[0],
+					center: paths[0]
 				});
 				let c = this.lonLatToMercator(paths[0].lng, paths[0].lat);
 				let p = this.lonLatToMercator(paths[1].lng, paths[1].lat);
@@ -649,6 +657,7 @@ new Vue({
 			google.maps.event.addListener(marker, 'click', function(event) {
 				infowindow.open(this.map, marker);
 			});
+			return marker;
 		},
 		//reset
 		reset: function(){
@@ -675,7 +684,19 @@ new Vue({
 				if(res.code > 0){
 					console.log(res.data);
 					for (var i = 0; i < res.data.length; i++) {
-						_this.drawMarker(res.data[i], i);
+						let marker = _this.drawMarker(res.data[i], i);
+						_this.markers.push(marker);
+						//event
+						google.maps.event.addListener(marker, 'mousedown', function(event) {
+							_this.handleMousedown(event);
+							event.wa.preventDefault();
+						});
+						google.maps.event.addListener(marker, 'mousemove', function(event) {
+							_this.handleMousemove(event);
+						});
+						google.maps.event.addListener(marker, 'mouseup', function(event) {
+							_this.handleMouseup(event);
+						});
 					}
 				}else{
 					_this.$message({
@@ -686,13 +707,18 @@ new Vue({
 			});
 		},
 		handleType(){
-			ajaxReq(optionsUrl, params, function(res){
-				self.addLoading = false;
+			let self = this;
+			ajaxReq(optionsUrl, {}, function(res){
 				if(res.code > 0){
-					
+					self.typeOptions = [];
+					for (var i = 0; i < res.data.length; i++) {
+						self.typeOptions.push({
+							value: res.data[i].pid, label: res.data[i].name
+						});
+					}
+					self.getList();
 				}
 			});
-			this.getList();
 		},
 		//add
 		addClose: function () {
@@ -762,6 +788,7 @@ new Vue({
 					if(typeof cb == 'function'){
 						cb();
 					}
+					sessionStorage.setItem('user', JSON.stringify(res.data));
 				}
 			});
 		},

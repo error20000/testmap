@@ -1,9 +1,11 @@
 package com.jian.map.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,11 +15,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.jian.annotation.API;
 import com.jian.annotation.ParamsInfo;
 import com.jian.tools.core.JsonTools;
+import com.jian.tools.core.MapTools;
 import com.jian.tools.core.ResultKey;
 import com.jian.tools.core.ResultTools;
 import com.jian.tools.core.Tips;
+import com.jian.tools.core.Tools;
+import com.jian.map.config.Config;
 import com.jian.map.entity.Options;
+import com.jian.map.entity.User;
 import com.jian.map.service.OptionsService;
+import com.jian.map.util.Utils;
 
 @Controller
 @RequestMapping("/api/options")
@@ -26,6 +33,8 @@ public class OptionsController extends BaseController<Options> {
 
 	@Autowired
 	private OptionsService service;
+	@Autowired
+	private Config config;
 	
 	@Override
 	public void initService() {
@@ -50,7 +59,40 @@ public class OptionsController extends BaseController<Options> {
 				@ParamsInfo(name=ResultKey.DATA, type="", info="数据集"),
 		})
 	public String add(HttpServletRequest req) {
-		return super.add(req);
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}
+		
+		//保存
+		Options obj = Tools.getReqParamsToObject(req, new Options());
+		int res = service.add(obj);
+		if(res > 0){
+			return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, res).toJSONString();
+		}else{
+			return ResultTools.custom(Tips.ERROR0).toJSONString();
+		}
 	}
 
 
@@ -73,7 +115,54 @@ public class OptionsController extends BaseController<Options> {
 				@ParamsInfo(name=ResultKey.DATA, type="", info="数据集"),
 		})
 	public String update(HttpServletRequest req) {
-		return super.update(req);
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}
+		
+		//参数
+		List<String> pkeys = Utils.getPrimaryKeys(Options.class);//获取主键
+		if(pkeys == null || pkeys.isEmpty()){
+			return ResultTools.custom(Tips.ERROR206).toJSONString();
+		}
+		Map<String, Object> condition = new HashMap<String, Object>();
+		for (String str : pkeys) {
+			String strv = Tools.getReqParamSafe(req, str);
+			vMap = Tools.verifyParam(str, strv, 0, 0);
+			if(vMap != null){
+				return ResultTools.custom(Tips.ERROR206, str).toJSONString();
+			}
+			condition.put(str, strv);
+		}
+		Map<String, Object> setValues = Tools.getReqParamsToMap(req, Options.class);
+		//保存
+		int res = service.modify(setValues, condition);
+		if(res > 0){
+			return ResultTools.custom(Tips.ERROR1).toJSONString();
+		}else{
+			return ResultTools.custom(Tips.ERROR0).put(ResultKey.DATA, res).toJSONString();
+		}
 	}
 
 	@Override
@@ -91,7 +180,53 @@ public class OptionsController extends BaseController<Options> {
 				@ParamsInfo(name=ResultKey.DATA, type="", info="数据集"),
 		})
 	public String delete(HttpServletRequest req) {
-		return super.delete(req);
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}
+		
+		//参数
+		List<String> pkeys = Utils.getPrimaryKeys(Options.class);//获取主键
+		if(pkeys == null || pkeys.isEmpty()){
+			return ResultTools.custom(Tips.ERROR206).toJSONString();
+		}
+		Map<String, Object> condition = new HashMap<String, Object>();
+		for (String str : pkeys) {
+			String strv = Tools.getReqParamSafe(req, str);
+			vMap = Tools.verifyParam(str, strv, 0, 0);
+			if(vMap != null){
+				return ResultTools.custom(Tips.ERROR206, str).toJSONString();
+			}
+			condition.put(str, strv);
+		}
+		//保存
+		int res = service.delete(condition);
+		if(res > 0){
+			return ResultTools.custom(Tips.ERROR1).toJSONString();
+		}else{
+			return ResultTools.custom(Tips.ERROR0).put(ResultKey.DATA, res).toJSONString();
+		}
 	}
 
 	@Override
@@ -192,7 +327,15 @@ public class OptionsController extends BaseController<Options> {
 			return JsonTools.toJsonString(vMap);
 		}
 		
-		List<Options> list = service.findAll();
+		List<Options> list = service.findList(MapTools.custom().put("status", 1).build());
         return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, list).toJSONString();
+	}
+	
+	private User getLoginUser(HttpServletRequest req){
+
+		HttpSession session = req.getSession();
+		User user = (User)session.getAttribute(config.login_session_key);
+		
+		return user;
 	}
 }

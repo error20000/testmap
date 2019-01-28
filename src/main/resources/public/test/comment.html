@@ -25,16 +25,34 @@
 			<el-col :span="24">
 				<el-form :inline="true" :model="filters" style="float: right;">
 					<el-form-item>
-						<el-input v-model="filters.user" placeholder="user"></el-input>
+						<el-select v-model="filters.user" placeholder="Select">
+							<el-option value="" label="all user"></el-option>
+						    <el-option
+						      v-for="item in userOptions"
+						      :key="item.pid"
+						      :label="item.username"
+						      :value="item.pid">
+						    </el-option>
+						  </el-select>
 					</el-form-item>
 					<el-form-item>
-						<el-input v-model="filters.start" placeholder="start date"></el-input>
+						<el-date-picker
+					      v-model="filters.start"
+					      type="datetime"
+					      value-format="yyyy-MM-dd HH:mm:ss"
+					      placeholder="Select start date">
+					    </el-date-picker>
 					</el-form-item>
 					<el-form-item>
-						<el-input v-model="filters.end" placeholder="end date"></el-input>
+						<el-date-picker
+					      v-model="filters.end"
+					      type="datetime"
+					      value-format="yyyy-MM-dd HH:mm:ss"
+					      placeholder="Select end date">
+					    </el-date-picker>
 					</el-form-item>
 					<el-form-item>
-						<el-button type="primary" @click="getList">Query</el-button>
+						<el-button type="primary" @click="query">Query</el-button>
 					</el-form-item>
 					<el-form-item>
 						<el-button @click="getExcel">Export </el-button>
@@ -50,17 +68,17 @@
 				<el-table :data="list" highlight-current-row border v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" class="mytable" >
 					<el-table-column label="Pid" prop="pid" width="120">
 					</el-table-column>
-					<el-table-column label="User" prop="user" min-width="200">
+					<el-table-column label="User" prop="user" min-width="200" :formatter="formatUser">
 					</el-table-column>
 					<el-table-column label="Date" prop="date" min-width="200">
 					</el-table-column>
 					<el-table-column label="Local" prop="local" min-width="200" :show-overflow-tooltip="true">
 					</el-table-column>
-					<el-table-column label="Type" prop="type" min-width="200">
+					<el-table-column label="Type" prop="type" min-width="200" :formatter="formatType">
 					</el-table-column>
 					<el-table-column fixed="right" label="handle" width="220">
 						<template scope="scope">
-							<el-button size="small" @click="handleEdit(scope.$index, scope.row)">Edit</el-button>
+							<el-button size="small" @click="handleMap(scope.$index, scope.row)">Map</el-button>
 							<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">Del</el-button>
 						</template>
 					</el-table-column>
@@ -77,6 +95,13 @@
 				<div id="gmap" style="width: 100%; height: 500px;"></div>
 			</el-tab-pane>
 		  </el-tabs>
+		  
+		  <el-dialog title="" :visible.sync="mapFormVisible" :close-on-click-modal="false" width="95%" @open="viewMap" @close="viewClose">
+            <div id="vmap" style="width: 100%; height: 500px;"></div>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="viewClose">close</el-button>
+			</div>
+		</el-dialog>
 		
 	</section>
   </div>
@@ -87,6 +112,8 @@
   <!-- element-ui -->
   <script src="https://cdn.bootcss.com/element-ui/2.4.0/index.js"></script>
   <script src="https://cdn.bootcss.com/element-ui/2.4.0/locale/en.js"></script>
+  <script src="http://ditu.google.cn/maps/api/js?&key=AIzaSyDJW4jsPlNKgv6jFm3B5Edp5ywgdqLWdmc"></script>
+  <script type="text/javascript" src="js/color.js"></script>
   <script type="text/javascript" src="js/comment.js"></script>
   <script>
 	  ELEMENT.locale(ELEMENT.lang.en)

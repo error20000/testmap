@@ -436,7 +436,7 @@ public class UserController extends BaseController<User> {
 		if(test == null){
 			return ResultTools.custom(Tips.ERROR0).toJSONString();
 		}else {
-			return ResultTools.custom(Tips.ERROR1).toJSONString();
+			return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, test).toJSONString();
 		}
 	}
 	

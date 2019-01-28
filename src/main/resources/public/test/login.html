@@ -38,7 +38,7 @@
 	  
 	  
 		<!--Register-->
-		<el-dialog title="" :visible.sync="addFormVisible" :close-on-click-modal="false" width="95%" :show-close="false">
+		<el-dialog title="" :visible.sync="addFormVisible" :close-on-click-modal="false" :width="registerWidth" :show-close="false">
 			<el-form size="mini" :model="addForm" :label-position="'top'" :rules="addFormRules" ref="addForm">
 				<el-form-item label="Username" prop="username">
 			      <el-input type="text" v-model="addForm.username" placeholder=""></el-input>

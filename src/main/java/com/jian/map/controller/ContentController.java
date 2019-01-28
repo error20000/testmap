@@ -3,6 +3,7 @@ package com.jian.map.controller;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import com.jian.map.config.Config;
 import com.jian.map.entity.Content;
 import com.jian.map.entity.User;
 import com.jian.map.service.ContentService;
+import com.jian.map.util.Utils;
 import com.jian.tools.core.JsonTools;
 import com.jian.tools.core.ResultKey;
 import com.jian.tools.core.ResultTools;
@@ -81,16 +83,15 @@ public class ContentController extends BaseController<Content> {
 		if(vMap != null){
 			return JsonTools.toJsonString(vMap);
 		}
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
 		
 		//保存
 		Content obj = Tools.getReqParamsToObject(req, new Content());
-		//获取登录用户
-		HttpSession session = req.getSession();
-		User test = (User)session.getAttribute(config.login_session_key);
-		if(test == null){
-			return ResultTools.custom(Tips.ERROR111).toJSONString();
-		}
-		obj.setUser(test.getPid());
+		obj.setUser(user.getPid());
 		int res = service.add(obj);
 		if(res > 0){
 			return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, res).toJSONString();
@@ -141,7 +142,53 @@ public class ContentController extends BaseController<Content> {
 				@ParamsInfo(name=ResultKey.DATA, type="", info="数据集"),
 		})
 	public String delete(HttpServletRequest req) {
-		return super.delete(req);
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}
+		
+		//参数
+		List<String> pkeys = Utils.getPrimaryKeys(Content.class);//获取主键
+		if(pkeys == null || pkeys.isEmpty()){
+			return ResultTools.custom(Tips.ERROR206).toJSONString();
+		}
+		Map<String, Object> condition = new HashMap<String, Object>();
+		for (String str : pkeys) {
+			String strv = Tools.getReqParamSafe(req, str);
+			vMap = Tools.verifyParam(str, strv, 0, 0);
+			if(vMap != null){
+				return ResultTools.custom(Tips.ERROR206, str).toJSONString();
+			}
+			condition.put(str, strv);
+		}
+		//保存
+		int res = service.delete(condition);
+		if(res > 0){
+			return ResultTools.custom(Tips.ERROR1).toJSONString();
+		}else{
+			return ResultTools.custom(Tips.ERROR0).put(ResultKey.DATA, res).toJSONString();
+		}
 	}
 
 	@Override
@@ -170,7 +217,63 @@ public class ContentController extends BaseController<Content> {
 				@ParamsInfo(name=ResultKey.TOTAL, type="int", info="总数"),
 		})
 	public String findPage(HttpServletRequest req) {
-		return super.findPage(req);
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}
+		
+		//参数
+		String page = Tools.getReqParamSafe(req, "page");
+		String rows = Tools.getReqParamSafe(req, "rows");
+		String startDate = Tools.getReqParamSafe(req, "start");
+		String endDate = Tools.getReqParamSafe(req, "end");
+		vMap = Tools.verifyParam("page", page, 0, 0, true);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		vMap = Tools.verifyParam("rows", rows, 0, 0, true);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		int start = Tools.parseInt(page) <= 1 ? 0 : (Tools.parseInt(page) - 1) * Tools.parseInt(rows);
+		//参数
+		String wsql = " 1=1 ";
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, Content.class);
+		for (String key : condition.keySet()) {
+			wsql += " and `"+key+"` = :"+key;
+		}
+		if(!Tools.isNullOrEmpty(startDate)) {
+			wsql += " and `date` >= :startDate";
+			condition.put("startDate", startDate);
+		}
+		if(!Tools.isNullOrEmpty(endDate)) {
+			wsql += " and `date` <= :endDate";
+			condition.put("endDate", endDate);
+		}
+		List<Content> list = service.getDao().findList(wsql,condition, start, Tools.parseInt(rows));
+		long total = service.getDao().size(wsql,condition);
+        return ResultTools.custom(Tips.ERROR1).put(ResultKey.TOTAL, total).put(ResultKey.DATA, list).toJSONString();
 	}
 
 	@Override
@@ -224,7 +327,43 @@ public class ContentController extends BaseController<Content> {
 				@ParamsInfo(name=ResultKey.DATA, type="Array", info="数据集"),
 		})
 	public String findList(HttpServletRequest req) {
-		return super.findList(req);
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		
+		//参数
+		String wsql = " 1=1 ";
+		String start = Tools.getReqParamSafe(req, "start");
+		String end = Tools.getReqParamSafe(req, "end");
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, Content.class);
+		for (String key : condition.keySet()) {
+			wsql += " and `"+key+"` = :"+key;
+		}
+		if(!Tools.isNullOrEmpty(start)) {
+			wsql += " and `date` >= :start";
+			condition.put("start", start);
+		}
+		if(!Tools.isNullOrEmpty(end)) {
+			wsql += " and `date` <= :end";
+			condition.put("end", end);
+		}
+		
+		List<Content> list = service.getDao().findList(wsql, condition);
+        return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, list).toJSONString();
 	}
 
 	@Override
@@ -272,7 +411,6 @@ public class ContentController extends BaseController<Content> {
 		if(vMap != null){
 			return JsonTools.toJsonString(vMap);
 		}
-
 		//登录用户
 		User user = getLoginUser(req);
 		if(user == null){
@@ -281,21 +419,38 @@ public class ContentController extends BaseController<Content> {
 		if(user.getAdmin() != 1){
 			return ResultTools.custom(Tips.ERROR201).toJSONString();
 		}
+
+		String wsql = " 1=1 ";
+		String start = Tools.getReqParamSafe(req, "start");
+		String end = Tools.getReqParamSafe(req, "end");
 		//查询
+		List<Content> list = null;
 		Map<String, Object> condition = Tools.getReqParamsToMap(req, Content.class);
-		if(condition == null || condition.isEmpty()){
-			return ResultTools.custom(Tips.ERROR211, "查询条件").toJSONString();
+		for (String key : condition.keySet()) {
+			wsql += " and `"+key+"` = :"+key;
 		}
-		List<Content> list = service.findList(condition);
+		if(!Tools.isNullOrEmpty(start)) {
+			wsql += " and `date` >= :start";
+			condition.put("start", start);
+		}
+		if(!Tools.isNullOrEmpty(end)) {
+			wsql += " and `date` <= :end";
+			condition.put("end", end);
+		}
+		if(condition == null || condition.isEmpty()){
+			list = service.findAll();
+		}else {
+			list = service.getDao().findList(wsql, condition);
+		}
 
 		//执行
-		resp.addHeader("Content-Disposition","attachment;filename=content.csv");
+		resp.addHeader("Content-Disposition","attachment;filename=comment.csv");
 		// response.addHeader("Content-Length", "" + JSONArray.fromObject(list).toString().getBytes().length);
 		resp.setContentType("application/octet-stream;charset=utf-8");
 		try {
 			OutputStream toClient = new BufferedOutputStream(resp.getOutputStream());
 			//header
-			String head = "pid,user pid,date,user location,draw area,option,content";
+			String head = "pid,user pid,date,user location,draw type,draw area,option,content";
 			head += "\n";
 			toClient.write(head.getBytes("utf-8"));
 			//遍历导出数据
@@ -303,8 +458,9 @@ public class ContentController extends BaseController<Content> {
 				String str = node.getPid()+",";
 				str += node.getUser()+",";
 				str += "\"" + node.getDate()+ "\""+",";
-				str += "\"" + node.getLocal()+ "\""+",";
-				str += "\"" + node.getPath()+ "\""+",";
+				str += "\"" + (Tools.isNullOrEmpty(node.getLocal()) ? "" : node.getLocal().replace("\"", "\"\""))+ "\""+",";
+				str += "\"" + node.getType()+ "\""+",";
+				str += "\"" + (Tools.isNullOrEmpty(node.getPath()) ? "" : node.getPath().replace("\"", "\"\""))+ "\""+",";
 				str += "\"" + (Tools.isNullOrEmpty(node.getOption()) ? "" : node.getOption().replace("\"", "\"\""))+ "\""+",";
 				str += "\"" + (Tools.isNullOrEmpty(node.getContent()) ? "" : node.getContent().replace("\"", "\"\""))+ "\""+",";
 				str +=  "\n";

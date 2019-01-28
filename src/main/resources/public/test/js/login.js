@@ -24,6 +24,7 @@ function ajaxReq(url, param, callback, cp){
         return {
         	preloading: false,
             logining: false,
+            registerWidth: '90%',
             ruleForm: {
               username: '',
               password: ''
@@ -157,6 +158,12 @@ function ajaxReq(url, param, callback, cp){
           }
         },
     	mounted: function() {
+    		if(/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)) {
+    			this.registerWidth = '90%';
+    		} else {
+    			$('.login-container').css('width', '350px');
+    			this.registerWidth = '50%';
+    		}
     		this.preloading = true;
     	}
     });

@@ -27,7 +27,7 @@ new Vue({
     data() {
         return {
           sysName: "Platform ",
-          sysUserName: "admin",
+          sysUserName: "",
           menus: [],
       	  preloading: false,
           //pwd
@@ -169,6 +169,7 @@ new Vue({
 					if(typeof cb == 'function'){
 						cb();
 					}
+					sessionStorage.setItem('user', JSON.stringify(res.data));
 				}
 			});
         }
@@ -183,6 +184,7 @@ new Vue({
   			alert("no auth!");
   			parent.window.location.href = "login.html";
   		}
+  		this.sysUserName = this.user.username;
 		this.isLogin();
 		this.preloading = true;
       }
