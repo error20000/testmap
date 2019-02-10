@@ -216,7 +216,7 @@ new Vue({
 				break; 
 			} 
 			//PC test
-            this.showMap(30.67, 104.06);
+            this.showMap(35.954652, -83.925869);
 		},
 		
 		showMap: function (lat, lng) {
@@ -229,6 +229,26 @@ new Vue({
 		        zoom: this.zoom
 		        // mapTypeId: google.maps.MapTypeId.ROADMAP
 	        });
+	        //My location
+	        let marker = new google.maps.Marker({
+	            position: center,
+	            map: this.map,
+	            icon: {
+	            	path: google.maps.SymbolPath.CIRCLE,
+	            	scale: 8,
+	            	fillColor: 'blue',
+	            	fillOpacity: 1,
+	            	strokeColor: '#ffffff',
+	            	strokeWeight: 2
+	            }
+	        });
+	        let infowindow = new google.maps.InfoWindow({
+				content: 'My location.',
+				position: center
+			});
+			google.maps.event.addListener(marker, 'click', function(event) {
+				infowindow.open(this.map, marker);
+			});
 	        //control
 	        this.initControl();
 	        //query data
@@ -265,14 +285,19 @@ new Vue({
 			this.path = [];
 			this.marker = '';
 		},
-		changeActive: function(event){
-			let pe = event.target.parentNode.parentNode.childNodes;
+		changeActive: function(div){
+			/*let pe = event.target.parentNode.parentNode.childNodes;
 			for (var i = 0; i < pe.length; i++) {
 				if(String(pe[i].className).indexOf('control-button') != -1){
 					pe[i].className = 'control-button';
 				}
 			}
-			event.target.parentNode.className = 'control-button active';
+			event.target.parentNode.className = 'control-button active';*/
+			$('#controlDiv button').removeClass('active');
+			$('#'+div).addClass('active');
+		},
+		clearActive: function(){
+			$('#controlDiv button').removeClass('active');
 		},
 		
 		//point control
@@ -287,6 +312,8 @@ new Vue({
 			//clear
 			this.clearControlListener();
 			this.clearDrawData();
+			//change
+			this.changeActive('pointDiv');
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -310,6 +337,8 @@ new Vue({
 			//clear
 			this.clearControlListener();
 			this.clearDrawData();
+			//change
+			this.changeActive('lineDiv');
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -333,6 +362,8 @@ new Vue({
 			//clear
 			this.clearControlListener()
 			this.clearDrawData();
+			//change
+			this.changeActive('spaceDiv');
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -356,6 +387,8 @@ new Vue({
 			//clear
 			this.clearControlListener();
 			this.clearDrawData();
+			//change
+			this.changeActive('circleDiv');
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -380,6 +413,8 @@ new Vue({
 			//clear
 			this.clearControlListener();
 			this.clearDrawData();
+			//change
+			this.changeActive('polygonDiv');
 			//draw
 			this.canDraw = true;
 			//draggable
@@ -543,6 +578,7 @@ new Vue({
 			if(this.canDraw){
 				//clear
 				this.clearControlListener();
+				this.clearActive();
 				//show window
 				this.addFormVisible = true;
 			}

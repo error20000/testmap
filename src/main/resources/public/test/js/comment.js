@@ -41,8 +41,8 @@ var myvue = new Vue({
 				optOptions: [],
 				
 				center: {
-					lat: 34.04,
-					lng: -118.15
+					lat: 35.954652,
+					lng: -83.925869
 				},
 				zoom: 12,
 				map: '',
@@ -153,6 +153,26 @@ var myvue = new Vue({
 			        zoom: this.zoom
 			        // mapTypeId: google.maps.MapTypeId.ROADMAP
 		        });
+		        //My location
+		        let marker = new google.maps.Marker({
+		            position: this.center,
+		            map: this.map,
+		            icon: {
+		            	path: google.maps.SymbolPath.CIRCLE,
+		            	scale: 8,
+		            	fillColor: 'blue',
+		            	fillOpacity: 1,
+		            	strokeColor: '#ffffff',
+		            	strokeWeight: 2
+		            }
+		        });
+		        let infowindow = new google.maps.InfoWindow({
+					content: 'My location.',
+					position: this.center
+				});
+				google.maps.event.addListener(marker, 'click', function(event) {
+					infowindow.open(this.map, marker);
+				});
 		        //data
 		        this.getListMap();
 			},
