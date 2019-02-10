@@ -259,6 +259,10 @@ var myvue = new Vue({
 							north: paths[1].lat,
 							east: paths[1].lng
 						});
+						let sw = {lat: paths[0].lat, lng: paths[0].lng};
+						let ne = {lat: paths[1].lat, lng: paths[1].lng};
+						let temp = new google.maps.LatLngBounds(sw, ne);
+						position = temp.getCenter();
 					}else{
 						marker.setBounds({
 							south: paths[1].lat,
@@ -266,6 +270,10 @@ var myvue = new Vue({
 							north: paths[0].lat,
 							east: paths[0].lng
 						});
+						let sw = {lat: paths[1].lat, lng: paths[1].lng};
+						let ne = {lat: paths[0].lat, lng: paths[0].lng};
+						let temp = new google.maps.LatLngBounds(sw, ne);
+						position = temp.getCenter();
 					}
 				}else if(data.type === 4){ //circle
 					marker = new google.maps.Circle({
@@ -275,6 +283,7 @@ var myvue = new Vue({
 						map: map,
 						center: paths[0],
 					});
+					position = paths[0];
 					let c = this.lonLatToMercator(paths[0].lng, paths[0].lat);
 					let p = this.lonLatToMercator(paths[1].lng, paths[1].lat);
 					marker.setRadius(Math.sqrt(Math.pow(p.x-c.x,2) + Math.pow(p.y-c.y,2)));
@@ -286,11 +295,37 @@ var myvue = new Vue({
 						map: map,
 						paths: paths
 					});
+					//center
+					let sw = {lat: 0, lng:0};
+					let ne = {lat: 0, lng:0};
+					for (var i = 0; i < paths.length; i++) {
+						if(i == 0){
+							sw.lat = paths[i].lat;
+							sw.lng = paths[i].lng;
+							ne.lat = paths[i].lat;
+							ne.lng = paths[i].lng;
+						}else{
+							if(paths[i].lat < sw.lat){
+								sw.lat = paths[i].lat;
+							}
+							if(paths[i].lng < sw.lng){
+								sw.lng = paths[i].lng;
+							}
+							if(paths[i].lat > ne.lat){
+								ne.lat = paths[i].lat;
+							}
+							if(paths[i].lng > ne.lng){
+								ne.lng = paths[i].lng;
+							}
+						}
+					}
+					let temp = new google.maps.LatLngBounds(sw, ne);
+					position = temp.getCenter();
 				}
 				
 				var infowindow = new google.maps.InfoWindow({
 					content: content.join('<br/>'),
-					position: paths[0]
+					position: position
 				});
 				
 				//event
