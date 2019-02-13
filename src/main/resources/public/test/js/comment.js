@@ -203,13 +203,10 @@ var myvue = new Vue({
 				}
 				
 				let content = [];
-				content.push("User: "+this.formatUser(data));
-				content.push("<br/>");
-				content.push("Date: "+data.date);
-				content.push("<br/>");
-				content.push("Location: "+data.local);
-				content.push("<br/>");
-				content.push("Options: ");
+				content.push("<p>User: "+this.formatUser(data)+"</p>");
+				content.push("<p>Date: "+data.date+"</p>");
+				content.push("<p>Location: "+data.local+"</p>");
+				content.push("<p>Options: </p>");
 				let color = this.colors[data.user % this.colors.length]; //index % this.colors.length
 				let options = data.option;
 				if(options){
@@ -217,13 +214,12 @@ var myvue = new Vue({
 					for (var i = 0; i < opt.length; i++) {
 						for (var j = 0; j < this.optOptions.length; j++) {
 							if(opt[i] == this.optOptions[j].pid){
-								content.push("&nbsp;&nbsp;"+this.optOptions[j].name);
+								content.push("<p>"+(i+1)+". "+this.optOptions[j].name+"</p>");
 							}
 						}
 					}
 				}
-				content.push("<br/>");
-				content.push("Comment: ");
+				content.push("<p>Comment: </p>");
 				content.push(data.content);
 				
 				let marker;
@@ -324,7 +320,7 @@ var myvue = new Vue({
 				}
 				
 				var infowindow = new google.maps.InfoWindow({
-					content: content.join('<br/>'),
+					content: content.join(''),
 					position: position
 				});
 				

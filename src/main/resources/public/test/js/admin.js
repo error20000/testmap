@@ -9,6 +9,9 @@ function ajaxReq(url, param, callback, cp){
 		   type: "POST",
 		   url: url,
 		   data: param,
+		   /*xhrFields:{
+			    withCredentials:true
+		   },*/
 		   success: function(data){
 			   	if(data.code == -203 || data.code == -111){ // token 超时
 			   		parent.window.location.href = "login.html";

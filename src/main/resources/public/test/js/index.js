@@ -605,7 +605,7 @@ new Vue({
 			}
 			
 			let content = [];
-			content.push("Options: ");
+			content.push("<p>Options: </p>");
 			let color = this.colors[0]; //index % this.colors.length
 			let options = data.option;
 			if(options){
@@ -613,13 +613,12 @@ new Vue({
 				for (var i = 0; i < opt.length; i++) {
 					for (var j = 0; j < this.typeOptions.length; j++) {
 						if(opt[i] == this.typeOptions[j].value){
-							content.push("&nbsp;&nbsp;"+this.typeOptions[j].label);
+							content.push("<p>"+(i+1)+". "+this.typeOptions[j].label+"</p>");
 						}
 					}
 				}
 			}
-			content.push("<br/>");
-			content.push("Comment: ");
+			content.push("<p>Comment: </p>");
 			content.push(data.content);
 			
 			let marker;
@@ -720,7 +719,7 @@ new Vue({
 			}
 			
 			var infowindow = new google.maps.InfoWindow({
-				content: content.join('<br/>'),
+				content: content.join(''),
 				position: position
 			});
 			
