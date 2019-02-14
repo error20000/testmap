@@ -466,6 +466,7 @@ public class UserController extends BaseController<User> {
 		String username = Tools.getReqParamSafe(req, "username");
 		String password = Tools.getReqParamSafe(req, "password");
 		String nick = Tools.getReqParamSafe(req, "nick");
+		String color = Tools.getReqParamSafe(req, "color");
 		vMap = Tools.verifyParam("username", username, 0, 0);
 		if(vMap != null){
 			return ResultTools.custom(Tips.ERROR206, "username").toJSONString();
@@ -487,6 +488,7 @@ public class UserController extends BaseController<User> {
 		user.setNick(Tools.isNullOrEmpty(nick) ? username : nick);
 		user.setPassword(Tools.md5(password));
 		user.setAdmin(0);
+		user.setColor(color);
 		int res = service.add(user);
 		if(res > 0){
 			return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, res).toJSONString();

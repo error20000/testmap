@@ -25,6 +25,8 @@ public class User  extends Base<User> {
 	private String nick;
 	@Excel(name="admin  0: no, 1: yes", sort=4, value="0", length="4", isNull=1 )
 	private int admin;
+	@Excel(name="color", sort=4, length="10", isNull=1 )
+	private String color;
 	
 	//get set
 	public int getPid() {
@@ -56,6 +58,12 @@ public class User  extends Base<User> {
 	}
 	public void setAdmin(int admin) {
 		this.admin = admin;
+	}
+	public String getColor() {
+		return color;
+	}
+	public void setColor(String color) {
+		this.color = color;
 	}
 
 }

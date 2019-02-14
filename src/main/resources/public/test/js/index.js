@@ -431,7 +431,12 @@ new Vue({
 			let _this = this;
 			this.mousedownListener = google.maps.event.addListener(this.map, 'mousedown', function(event) {
 				_this.handleMousedown(event);
-				event.wa.preventDefault();
+				if(event.wa){
+					event.wa.preventDefault();
+				}
+				if(event.va){
+					event.va.preventDefault();
+				}
 			});
 		},
 		initMousemove: function(){
@@ -580,7 +585,19 @@ new Vue({
 				this.clearControlListener();
 				this.clearActive();
 				//show window
-				this.addFormVisible = true;
+				let self = this;
+				ajaxReq(optionsUrl, {}, function(res){
+					if(res.code > 0){
+						self.typeOptions = [];
+						for (var i = 0; i < res.data.length; i++) {
+							self.typeOptions.push({
+								value: res.data[i].pid, label: res.data[i].name
+							});
+						}
+						self.addFormVisible = true;
+					}
+				});
+				
 			}
 			
 		},
@@ -606,7 +623,7 @@ new Vue({
 			
 			let content = [];
 			content.push("<p>Options: </p>");
-			let color = this.colors[0]; //index % this.colors.length
+			let color = this.user.color || "#000000"; //this.colors[0]; //index % this.colors.length
 			let options = data.option;
 			if(options){
 				let opt = options.split(",");
@@ -767,7 +784,12 @@ new Vue({
 						//event
 						google.maps.event.addListener(marker, 'mousedown', function(event) {
 							_this.handleMousedown(event);
-							event.wa.preventDefault();
+							if(event.wa){
+								event.wa.preventDefault();
+							}
+							if(event.va){
+								event.va.preventDefault();
+							}
 						});
 						google.maps.event.addListener(marker, 'mousemove', function(event) {
 							_this.handleMousemove(event);

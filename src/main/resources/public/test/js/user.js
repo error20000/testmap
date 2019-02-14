@@ -43,7 +43,10 @@ var myvue = new Vue({
 					            callback();
 					          }
 						}, trigger: 'blur' }
-				      ]
+				      ],
+		              color: [
+		                { required: true, message: 'Please choose a color.', trigger: 'blur' },
+		              ]
 				},
 				//edit
 				editFormVisible: false,
@@ -52,6 +55,9 @@ var myvue = new Vue({
 				editFormRules: {
 		              username: [
 		                { required: true, message: 'Please enter the username.', trigger: 'blur' },
+		              ],
+		              color: [
+		                { required: true, message: 'Please choose a color.', trigger: 'blur' },
 		              ]
 				},
 				//reset
@@ -126,7 +132,8 @@ var myvue = new Vue({
 						password: '',
 						password2: '',
 						nick: '',
-						admin: 0
+						admin: 0,
+						color: ''
 				};
 			},
 			//edit

@@ -107,6 +107,16 @@ var myvue = new Vue({
 					}
 				});
 			},
+			findUser: function(userId){
+				let user = {};
+				for (var i = 0; i < this.userOptions.length; i++) {
+					if(userId == this.userOptions[i].pid){
+						user = this.userOptions[i];
+						break;
+					}
+				}
+				return user;
+			},
 			query:function(){
 				this.getList();
 				this.showMap();
@@ -207,7 +217,7 @@ var myvue = new Vue({
 				content.push("<p>Date: "+data.date+"</p>");
 				content.push("<p>Location: "+data.local+"</p>");
 				content.push("<p>Options: </p>");
-				let color = this.colors[data.user % this.colors.length]; //index % this.colors.length
+				let color = this.findUser(data.user).color || "#000000"; //this.colors[data.user % this.colors.length]; //index % this.colors.length
 				let options = data.option;
 				if(options){
 					let opt = options.split(",");
@@ -385,13 +395,16 @@ var myvue = new Vue({
 			},
 			viewMap: function(){
 				setTimeout(() => {
-					if(!this.vmap){
-						this.vmap = new google.maps.Map(document.getElementById('vmap'), {
-							center: this.center,
-							zoom: this.zoom
-							// mapTypeId: google.maps.MapTypeId.ROADMAP
-						});
+					let center = '';
+					if(this.viewData.location){
+						center = JSON.parse(this.viewData.location)
+					}else{
+						center = JSON.parse(this.viewData.path)[0];
 					}
+					this.vmap = new google.maps.Map(document.getElementById('vmap'), {
+						center: center,
+						zoom: this.zoom
+					});
 					//data
 					this.vmarker = this.drawMarker(this.viewData, 0, this.vmap);
 				}, 500);
@@ -400,6 +413,9 @@ var myvue = new Vue({
 				this.mapFormVisible = false;
 				if(this.vmarker){
 					this.vmarker.setMap(null);
+				}
+				if(this.vmap){
+					document.getElementById('vmap').innerHTML = "";
 				}
 			},
 			//del

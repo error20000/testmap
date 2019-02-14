@@ -50,7 +50,12 @@
 			</el-table-column>
 			<el-table-column label="Password" prop="password" min-width="200">
 			</el-table-column>
-			<el-table-column label="Is admin" prop="admin" min-width="200" :formatter="(r,c) => { return r.admin ? 'YES': '';}">
+			<el-table-column label="Is admin" prop="admin" min-width="100" :formatter="(r,c) => { return r.admin ? 'YES': '';}">
+			</el-table-column>
+			<el-table-column label="Color" prop="color" min-width="200">
+				<template scope="scope">
+				<span :style="'color: '+scope.row.color">{{scope.row.color}}</span>
+				</template>
 			</el-table-column>
 			<el-table-column fixed="right" label="handle" width="220">
 				<template scope="scope">
@@ -86,6 +91,10 @@
 				      <el-radio :label="1">Yes</el-radio>
 				    </el-radio-group>
 				</el-form-item>
+				<el-form-item label="Color" prop="color">
+				    <el-color-picker v-model="addForm.color"></el-color-picker>
+				    <span>{{addForm.color}}</span>
+				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click="addClose">Cancel</el-button>
@@ -104,6 +113,10 @@
 				      <el-radio :label="0">No</el-radio>
 				      <el-radio :label="1">Yes</el-radio>
 				    </el-radio-group>
+				</el-form-item>
+				<el-form-item label="Color" prop="color">
+				    <el-color-picker v-model="editForm.color"></el-color-picker>
+				    <span>{{editForm.color}}</span>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">

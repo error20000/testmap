@@ -111,7 +111,8 @@ function ajaxReq(url, param, callback, cp){
 				username: '',
 				password: '',
 				password2:'',
-				nick:''
+				nick:'',
+				color: '#'+Math.floor(Math.random()*0xffffff).toString(16)
 			};
 			 this.addFormVisible = true;
           },
