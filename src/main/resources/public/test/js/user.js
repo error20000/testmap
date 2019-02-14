@@ -249,7 +249,7 @@ var myvue = new Vue({
 			},
 			//res
 			toLoginHtml: function(){
-                sessionStorage.removeItem('user');
+                localStorage.removeItem('user');
                 parent.window.location.href = "login.html";
 			},
 			handleResQuery: function(res, success, failed){

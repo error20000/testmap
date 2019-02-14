@@ -226,7 +226,8 @@ body {
     color: #666666;
 }
 .control-button.active{
-    color: #000000;
+    background: #666666;
+    color: #ffffff;
 }
 
 .control-pan{

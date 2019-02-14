@@ -84,9 +84,9 @@ function ajaxReq(url, param, callback, cp){
 				ajaxReq(loginUrl, params, function(res){
 					self.logining = false;
 					if(res.code > 0){
-						// sessionStorage.setItem('checked', self.checked);
-						sessionStorage.setItem('user', JSON.stringify(res.data));
-						// sessionStorage.setItem('loginTime', new
+						// localStorage.setItem('checked', self.checked);
+						localStorage.setItem('user', JSON.stringify(res.data));
+						// localStorage.setItem('loginTime', new
 						// Date().getTime());
 						if(res.data.admin === 1){
 							window.location.href = 'admin.html';
@@ -168,4 +168,4 @@ function ajaxReq(url, param, callback, cp){
     		this.preloading = true;
     	}
     });
-
+  

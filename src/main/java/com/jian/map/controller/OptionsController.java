@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jian.annotation.API;
 import com.jian.annotation.ParamsInfo;
+import com.jian.tools.core.CacheObject;
+import com.jian.tools.core.CacheTools;
 import com.jian.tools.core.JsonTools;
 import com.jian.tools.core.MapTools;
 import com.jian.tools.core.ResultKey;
@@ -250,6 +252,15 @@ public class OptionsController extends BaseController<Options> {
 				@ParamsInfo(name=ResultKey.TOTAL, type="int", info="总数"),
 		})
 	public String findPage(HttpServletRequest req) {
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}
+		
 		return super.findPage(req);
 	}
 
@@ -333,8 +344,12 @@ public class OptionsController extends BaseController<Options> {
 	
 	private User getLoginUser(HttpServletRequest req){
 
-		HttpSession session = req.getSession();
-		User user = (User)session.getAttribute(config.login_session_key);
+//		HttpSession session = req.getSession();
+//		User user = (User)session.getAttribute(config.login_session_key);
+		
+		String userId = req.getHeader("user");
+		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
+		User user = (User)test.getValue();
 		
 		return user;
 	}

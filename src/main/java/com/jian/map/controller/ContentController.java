@@ -23,6 +23,8 @@ import com.jian.map.entity.Content;
 import com.jian.map.entity.User;
 import com.jian.map.service.ContentService;
 import com.jian.map.util.Utils;
+import com.jian.tools.core.CacheObject;
+import com.jian.tools.core.CacheTools;
 import com.jian.tools.core.JsonTools;
 import com.jian.tools.core.ResultKey;
 import com.jian.tools.core.ResultTools;
@@ -480,8 +482,12 @@ public class ContentController extends BaseController<Content> {
 	
 	private User getLoginUser(HttpServletRequest req){
 
-		HttpSession session = req.getSession();
-		User user = (User)session.getAttribute(config.login_session_key);
+//		HttpSession session = req.getSession();
+//		User user = (User)session.getAttribute(config.login_session_key);
+		
+		String userId = req.getHeader("user");
+		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
+		User user = (User)test.getValue();
 		
 		return user;
 	}

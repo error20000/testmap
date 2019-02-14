@@ -109,9 +109,31 @@
   <script src="https://ditu.google.cn/maps/api/js?key=AIzaSyDJW4jsPlNKgv6jFm3B5Edp5ywgdqLWdmc"></script>
   <script type="text/javascript" src="js/quill/dist/index.js"></script>
   <script type="text/javascript" src="js/color.js"></script>
+  <script type="text/javascript" src="js/global.js"></script>
   <script type="text/javascript" src="js/index.js"></script>
   <!-- <script src="http://pv.sohu.com/cityjson?ie=utf-8"></script> -->
   <script>
 	  ELEMENT.locale(ELEMENT.lang.en);
+	  
+	  /* function stopDefaultEvent(e){
+		  console.log(e);alert(0)
+		  e = e || window.event;
+		  e.preventDefault();
+	  }
+	  
+	  let app = document.getElementById('app');
+	  app.addEventListener('touchstart', function(e){
+		  app.addEventListener('touchmove', stopDefaultEvent, false);
+	  }, false);
+	  app.addEventListener('touchend', function(e){
+		  app.removeEventListener('touchmove', stopDefaultEvent, false);
+	  }, false);
+	  app.addEventListener('mousedown', function(e){
+		  app.addEventListener('mousemove', stopDefaultEvent, false);
+	  }, false);
+	  app.addEventListener('mouseup', function(e){
+		  app.removeEventListener('mousemove', stopDefaultEvent, false);
+	  }, false); */
+	  
   </script>
 </html>

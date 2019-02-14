@@ -9,6 +9,8 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.jian.tools.core.CacheObject;
+import com.jian.tools.core.CacheTools;
 import com.jian.tools.core.ResultKey;
 import com.jian.tools.core.ResultTools;
 import com.jian.tools.core.Tips;
@@ -69,9 +71,12 @@ public class VerifyConfig {
 	}
 	
 	private static Map<String, Object> verifyLoginNormal(HttpServletRequest req){
-		HttpSession session = req.getSession();
-		Object temp = session.getAttribute(config.login_session_key);
-		if(temp == null){
+//		HttpSession session = req.getSession();
+//		Object temp = session.getAttribute(config.login_session_key);
+		
+		String userId = req.getHeader("user");
+		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
+		if(test == null){
 			return ResultTools.custom(Tips.ERROR111).put(ResultKey.DATA, "verifyLoginNormal session is null!").build();
 		}
 		return null;

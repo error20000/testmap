@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -18,6 +19,8 @@ import com.jian.map.config.Config;
 import com.jian.map.entity.User;
 import com.jian.map.service.UserService;
 import com.jian.map.util.Utils;
+import com.jian.tools.core.CacheObject;
+import com.jian.tools.core.CacheTools;
 import com.jian.tools.core.JsonTools;
 import com.jian.tools.core.MapTools;
 import com.jian.tools.core.ResultKey;
@@ -393,9 +396,10 @@ public class UserController extends BaseController<User> {
 		}
 		
 		//保存
-		HttpSession session = req.getSession();
-		session.setAttribute(config.login_session_key, user);
+//		HttpSession session = req.getSession();
+//		session.setAttribute(config.login_session_key, user);
 		user.setPassword("");
+		CacheTools.setCacheObj("login_user_"+user.getPid(), user);
 		return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, user).toJSONString();
 	}
 	
@@ -412,9 +416,11 @@ public class UserController extends BaseController<User> {
 		})
 	public String logout(HttpServletRequest req) {
 		//保存
-		HttpSession session = req.getSession();
-		session.removeAttribute(config.login_session_key);
+//		HttpSession session = req.getSession();
+//		session.removeAttribute(config.login_session_key);
 		
+		String userId = req.getHeader("user");
+		CacheTools.clearCacheObj("login_user_"+userId);
 		return ResultTools.custom(Tips.ERROR1).toJSONString();
 	}
 	
@@ -431,12 +437,15 @@ public class UserController extends BaseController<User> {
 		})
 	public String isLogin(HttpServletRequest req) {
 		//保存
-		HttpSession session = req.getSession();
-		Object test = session.getAttribute(config.login_session_key);
+//		HttpSession session = req.getSession();
+//		Object test = session.getAttribute(config.login_session_key);
+		
+		String userId = req.getHeader("user");
+		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
 		if(test == null){
 			return ResultTools.custom(Tips.ERROR0).toJSONString();
 		}else {
-			return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, test).toJSONString();
+			return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, test.getValue()).toJSONString();
 		}
 	}
 	
@@ -625,8 +634,12 @@ public class UserController extends BaseController<User> {
 	
 	private User getLoginUser(HttpServletRequest req){
 
-		HttpSession session = req.getSession();
-		User user = (User)session.getAttribute(config.login_session_key);
+//		HttpSession session = req.getSession();
+//		User user = (User)session.getAttribute(config.login_session_key);
+		
+		String userId = req.getHeader("user");
+		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
+		User user = (User)test.getValue();
 		
 		return user;
 	}
