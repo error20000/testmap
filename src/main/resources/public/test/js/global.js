@@ -7,7 +7,7 @@ function ajaxReq(url, param, callback, cp){
 		   url: url,
 		   data: param,
 		   headers: {
-		        user: loginUserId
+		        userId: loginUserId
 		    },
 		   success: function(data){
 			   	if(data.code == -203 || data.code == -111){ // token 超时

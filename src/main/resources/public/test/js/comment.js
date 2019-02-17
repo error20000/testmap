@@ -154,6 +154,7 @@ var myvue = new Vue({
 						params += "&"+key+"="+this.filters[key];
 					}
 				}
+				params += "&userId="+parent.window.loginUserId;
 				parent.window.open(excelUrl+(params ? "?"+params.substring(1) : ""));
 			},
 			//map

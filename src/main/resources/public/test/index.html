@@ -93,11 +93,16 @@
 				<el-upload slot="append"
 				  :action="uploadUrl"
 				  :on-success="handleSuccessUpload"
+				  :on-progress="handleProgress"
 				  :show-file-list="false">
 				  <el-button id="uploadBtn" icon="el-icon-upload"></el-button>
 				</el-upload>
 			</el-input>
 		</div>
+		
+		<el-dialog title="Upload progress" :visible.sync="uploadProgressVisible" :close-on-click-modal="false" width="95%" >
+			<el-progress :percentage="uploadProgress" :text-inside="true" :stroke-width="18"></el-progress>
+		</el-dialog>
   </div>
 </body>
   <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>

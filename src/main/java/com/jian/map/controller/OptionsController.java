@@ -347,7 +347,10 @@ public class OptionsController extends BaseController<Options> {
 //		HttpSession session = req.getSession();
 //		User user = (User)session.getAttribute(config.login_session_key);
 		
-		String userId = req.getHeader("user");
+		String userId = req.getHeader("userId");
+		if(Tools.isNullOrEmpty(userId)) {
+			userId = Tools.getReqParamSafe(req, "userId");
+		}
 		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
 		User user = (User)test.getValue();
 		

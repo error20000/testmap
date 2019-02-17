@@ -27,6 +27,7 @@ new Vue({
 			path: [],
 			marker: '',
 			markers: [],
+			userLocalCenter: '',
 			
 			//新增界面数据
 			addFormVisible: false,//新增界面是否显示
@@ -72,6 +73,8 @@ new Vue({
 				{value: '11',label: 'I will not be here next time.'}
 			],
 			uploadUrl: baseUrl + 'api/file/uploadImg',
+			uploadProgressVisible: false,
+			uploadProgress: 0,
 			editorOption: {
 				modules: {
 					toolbar: {
@@ -128,6 +131,18 @@ new Vue({
    			let index = (editor.getSelection() || {}).index || editor.getLength();
    			editor.insertEmbed(index, 'image', dataUrl, 'user');
 		},
+		handleProgress: function(event, file, fileList){
+			let _this = this;
+			let percent = event.percent;
+			this.uploadProgressVisible = true;
+			this.uploadProgress = Math.floor(percent);
+			if(percent == 100){
+				setTimeout(() => {
+					_this.uploadProgressVisible = false;
+					_this.uploadProgress = 0;
+				}, 1000);
+			}
+		},
 		
 		getLocation(){
             var options={
@@ -152,7 +167,7 @@ new Vue({
             //纬度
             var lat = position.coords.latitude;
             //记录位置
-            this.addForm.local = JSON.stringify({lat: lat, lng: lng});
+            this.userLocalCenter = JSON.stringify({lat: lat, lng: lng});
             
             //google 
             this.showMap(lat, lng);
@@ -294,6 +309,11 @@ new Vue({
 			this.clearControlListener();
 			this.clearDrawData();
 			//change
+			let has = $('#pointDiv').hasClass('active');
+			if(has){
+				this.clearActive();
+				return;
+			}
 			this.changeActive('pointDiv');
 			//draw
 			this.canDraw = true;
@@ -319,6 +339,11 @@ new Vue({
 			this.clearControlListener();
 			this.clearDrawData();
 			//change
+			let has = $('#lineDiv').hasClass('active');
+			if(has){
+				this.clearActive();
+				return;
+			}
 			this.changeActive('lineDiv');
 			//draw
 			this.canDraw = true;
@@ -344,6 +369,11 @@ new Vue({
 			this.clearControlListener()
 			this.clearDrawData();
 			//change
+			let has = $('#spaceDiv').hasClass('active');
+			if(has){
+				this.clearActive();
+				return;
+			}
 			this.changeActive('spaceDiv');
 			//draw
 			this.canDraw = true;
@@ -369,6 +399,11 @@ new Vue({
 			this.clearControlListener();
 			this.clearDrawData();
 			//change
+			let has = $('#circleDiv').hasClass('active');
+			if(has){
+				this.clearActive();
+				return;
+			}
 			this.changeActive('circleDiv');
 			//draw
 			this.canDraw = true;
@@ -395,6 +430,11 @@ new Vue({
 			this.clearControlListener();
 			this.clearDrawData();
 			//change
+			let has = $('#polygonDiv').hasClass('active');
+			if(has){
+				this.clearActive();
+				return;
+			}
 			this.changeActive('polygonDiv');
 			//draw
 			this.canDraw = true;
@@ -817,6 +857,7 @@ new Vue({
 						var url = baseUrl + "api/content/add";
 						var params = Object.assign({}, this.addForm);
 						params.type = this.drawType;
+						params.local = this.userLocalCenter;
 						params.path = JSON.stringify(this.path);
 						params.option = params.option.join(',');
 						var self = this;

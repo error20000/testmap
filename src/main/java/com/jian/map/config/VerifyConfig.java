@@ -14,6 +14,7 @@ import com.jian.tools.core.CacheTools;
 import com.jian.tools.core.ResultKey;
 import com.jian.tools.core.ResultTools;
 import com.jian.tools.core.Tips;
+import com.jian.tools.core.Tools;
 
 /**
  * 根据情况需要重写接口
@@ -74,7 +75,10 @@ public class VerifyConfig {
 //		HttpSession session = req.getSession();
 //		Object temp = session.getAttribute(config.login_session_key);
 		
-		String userId = req.getHeader("user");
+		String userId = req.getHeader("userId");
+		if(Tools.isNullOrEmpty(userId)) {
+			userId = Tools.getReqParamSafe(req, "userId");
+		}
 		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
 		if(test == null){
 			return ResultTools.custom(Tips.ERROR111).put(ResultKey.DATA, "verifyLoginNormal session is null!").build();

@@ -419,7 +419,10 @@ public class UserController extends BaseController<User> {
 //		HttpSession session = req.getSession();
 //		session.removeAttribute(config.login_session_key);
 		
-		String userId = req.getHeader("user");
+		String userId = req.getHeader("userId");
+		if(Tools.isNullOrEmpty(userId)) {
+			userId = Tools.getReqParamSafe(req, "userId");
+		}
 		CacheTools.clearCacheObj("login_user_"+userId);
 		return ResultTools.custom(Tips.ERROR1).toJSONString();
 	}
@@ -440,7 +443,10 @@ public class UserController extends BaseController<User> {
 //		HttpSession session = req.getSession();
 //		Object test = session.getAttribute(config.login_session_key);
 		
-		String userId = req.getHeader("user");
+		String userId = req.getHeader("userId");
+		if(Tools.isNullOrEmpty(userId)) {
+			userId = Tools.getReqParamSafe(req, "userId");
+		}
 		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
 		if(test == null){
 			return ResultTools.custom(Tips.ERROR0).toJSONString();
@@ -637,7 +643,10 @@ public class UserController extends BaseController<User> {
 //		HttpSession session = req.getSession();
 //		User user = (User)session.getAttribute(config.login_session_key);
 		
-		String userId = req.getHeader("user");
+		String userId = req.getHeader("userId");
+		if(Tools.isNullOrEmpty(userId)) {
+			userId = Tools.getReqParamSafe(req, "userId");
+		}
 		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
 		User user = (User)test.getValue();
 		

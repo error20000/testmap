@@ -22,6 +22,7 @@ import com.jian.map.config.Config;
 import com.jian.map.entity.Content;
 import com.jian.map.entity.User;
 import com.jian.map.service.ContentService;
+import com.jian.map.service.UserService;
 import com.jian.map.util.Utils;
 import com.jian.tools.core.CacheObject;
 import com.jian.tools.core.CacheTools;
@@ -39,7 +40,11 @@ public class ContentController extends BaseController<Content> {
 	@Autowired
 	private ContentService service;
 	@Autowired
+	private UserService uService;
+	@Autowired
 	private Config config;
+	
+	private String[] drawTypeNames = {"","Point","Line","Rectangle","Circle","Polygon"};
 	
 	@Override
 	public void initService() {
@@ -421,6 +426,8 @@ public class ContentController extends BaseController<Content> {
 		if(user.getAdmin() != 1){
 			return ResultTools.custom(Tips.ERROR201).toJSONString();
 		}
+		//查询用户
+		List<User> allUser = uService.findAll();
 
 		String wsql = " 1=1 ";
 		String start = Tools.getReqParamSafe(req, "start");
@@ -452,16 +459,16 @@ public class ContentController extends BaseController<Content> {
 		try {
 			OutputStream toClient = new BufferedOutputStream(resp.getOutputStream());
 			//header
-			String head = "pid,user pid,date,user location,draw type,draw area,option,content";
+			String head = "pid,user,date,user location,draw type,draw area,option,content";
 			head += "\n";
 			toClient.write(head.getBytes("utf-8"));
 			//遍历导出数据
 			for (Content node : list) {
 				String str = node.getPid()+",";
-				str += node.getUser()+",";
+				str += formatUserName(allUser, node.getUser())+",";
 				str += "\"" + node.getDate()+ "\""+",";
 				str += "\"" + (Tools.isNullOrEmpty(node.getLocal()) ? "" : node.getLocal().replace("\"", "\"\""))+ "\""+",";
-				str += "\"" + node.getType()+ "\""+",";
+				str += "\"" + drawTypeNames[node.getType()]+ "\""+",";
 				str += "\"" + (Tools.isNullOrEmpty(node.getPath()) ? "" : node.getPath().replace("\"", "\"\""))+ "\""+",";
 				str += "\"" + (Tools.isNullOrEmpty(node.getOption()) ? "" : node.getOption().replace("\"", "\"\""))+ "\""+",";
 				str += "\"" + (Tools.isNullOrEmpty(node.getContent()) ? "" : node.getContent().replace("\"", "\"\""))+ "\""+",";
@@ -479,13 +486,27 @@ public class ContentController extends BaseController<Content> {
 	
 	//TODO 自定义方法
 
+	private String formatUserName(List<User> users, int userId) {
+		String name = userId+"";
+		for (User user : users) {
+			if(user.getPid() == userId) {
+				name = user.getUsername();
+				break;
+			}
+		}
+		return name;
+	}
+	
 	
 	private User getLoginUser(HttpServletRequest req){
 
 //		HttpSession session = req.getSession();
 //		User user = (User)session.getAttribute(config.login_session_key);
 		
-		String userId = req.getHeader("user");
+		String userId = req.getHeader("userId");
+		if(Tools.isNullOrEmpty(userId)) {
+			userId = Tools.getReqParamSafe(req, "userId");
+		}
 		CacheObject test = CacheTools.getCacheObj("login_user_"+userId);
 		User user = (User)test.getValue();
 		
