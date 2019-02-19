@@ -29,6 +29,9 @@ new Vue({
 			markers: [],
 			userLocalCenter: '',
 			
+			tracePath: [],
+			traceMarkers: [],
+			
 			//新增界面数据
 			addFormVisible: false,//新增界面是否显示
 			addLoading: false, //loading
@@ -171,28 +174,9 @@ new Vue({
             
             //google 
             this.showMap(lat, lng);
-            /*var latlon = latitude+','+longitude; 
-            var url = 'http://maps.google.cn/maps/api/geocode/json?latlng='+latlon+'&language=CN'; 
-            $.ajax({ 
-	            type: "GET", 
-	            url: url, 
-	            beforeSend: function(){ 
-	            	$("#google_geo").html('正在定位...'); 
-	            }, 
-	            success: function (json) { 
-		            if(json.status=='OK'){ 
-			            var results = json.results; 
-			            $.each(results,function(index,array){ 
-				            if(index==0){ 
-				            	$("#google_geo").html(array['formatted_address']); 
-				            } 
-			            }); 
-		            } 
-	            }, 
-	            error: function (XMLHttpRequest, textStatus, errorThrown) { 
-	            	$("#google_geo").html(latlon+"地址位置获取失败"); 
-	            } 
-            }); */
+
+            //watch
+            navigator.geolocation.watchPosition(this.watchPosition);
         },
         onError(error){ 
 			console.log("===========error============");
@@ -260,6 +244,7 @@ new Vue({
 	        this.initControlSpace();
 	        this.initControlCircle();
 	        this.initControlPolygon();
+	        this.initControlTrace();
 		},
 		clearControlListener: function(){
 			if(this.mousedownListener){
@@ -281,19 +266,25 @@ new Vue({
 			this.path = [];
 			this.marker = '';
 		},
+		clearTraceData: function(){
+			this.tracePath = [];
+		},
 		changeActive: function(div){
-			/*let pe = event.target.parentNode.parentNode.childNodes;
-			for (var i = 0; i < pe.length; i++) {
-				if(String(pe[i].className).indexOf('control-button') != -1){
-					pe[i].className = 'control-button';
-				}
-			}
-			event.target.parentNode.className = 'control-button active';*/
-			$('#controlDiv button').removeClass('active');
+			$('#controlDiv .draw').removeClass('active');
 			$('#'+div).addClass('active');
 		},
 		clearActive: function(){
-			$('#controlDiv button').removeClass('active');
+			$('#controlDiv .draw').removeClass('active');
+		},
+		
+		changeTrace: function(div){
+			$('#controlDiv .trace').removeClass('active');
+			$('#'+div).addClass('active');
+			$('.trace_tips').show();
+		},
+		clearTrace: function(){
+			$('#controlDiv .trace').removeClass('active');
+			$('.trace_tips').hide();
 		},
 		
 		//point control
@@ -631,8 +622,6 @@ new Vue({
             	y: toY
             };
 		},
-		
-		
 		drawMarker: function(data, index){
 			if(!data.path){
 				return;
@@ -767,6 +756,100 @@ new Vue({
 			});
 			return marker;
 		},
+
+		//trace control
+		initControlTrace: function(){
+			let div = document.getElementById('traceDiv');
+			let _this = this;
+			google.maps.event.addDomListener(div, 'click', function(event) {
+				console.log(event);
+				_this.handleControlTrace(event);
+			});
+		},
+		handleControlTrace: function(event){
+			//change
+			let has = $('#traceDiv').hasClass('active');
+			if(has){
+				this.clearTrace();
+				this.canTrace = false;
+				this.traceSubmit();
+				return;
+			}
+			this.changeTrace('traceDiv');
+			//clear
+			this.clearTraceData();
+			//trace
+			this.canTrace = true;
+		},
+		watchPosition: function(position){
+			if(this.canTrace){
+				console.log("watchPosition");
+				let lng = position.coords.longitude;
+				let lat = position.coords.latitude;
+				this.tracePath.push({lat: lat, lng: lng});
+			}
+		},
+		traceSubmit: function(){
+			console.log(this.tracePath);
+			if(this.tracePath.length == 0){
+				return;
+			}
+			if(!this.user){
+				return;
+			}
+			let _this = this;
+			let url = baseUrl + "api/trace/add";
+			let params = {};
+			params.user = this.user.pid;
+			params.local = this.userLocalCenter;
+			params.path = JSON.stringify(this.tracePath);
+			ajaxReq(url, params, function(res){
+				if(res.code > 0){
+					_this.$message({
+						message: 'success',
+						type: 'success'
+					});
+					_this.getTraceList();
+				}else{
+					_this.$message({
+						message: 'failed',
+						type: 'warning'
+					})
+				}
+			});
+		},
+		drawTrace: function(data, index){
+			if(!data.path){
+				return;
+			}
+			let paths = JSON.parse(data.path);
+			if(paths.length == 0){
+				return;
+			}
+			
+			let color = this.user.color || "#000000";
+			let marker;
+			let position;
+			marker = new google.maps.Polyline({
+				strokeWeight: this.polylineStrokeWeight,
+				strokeColor: color,
+				map: this.map,
+				path: paths
+			});
+			position = paths[Math.floor(paths.length/2)];
+			
+			var infowindow = new google.maps.InfoWindow({
+				content: "trace path.",
+				position: position
+			});
+			
+			//event
+			google.maps.event.addListener(marker, 'click', function(event) {
+				infowindow.open(this.map, marker);
+			});
+			return marker;
+		},
+		
 		//reset
 		reset: function(){
 			this.addForm = {
@@ -827,6 +910,52 @@ new Vue({
 				}
 			});
 		},
+		getTraceList: function(){
+			var url = baseUrl + "api/trace/findList";
+			var params = {
+					user: this.user.pid
+			};
+			var _this = this;
+			ajaxReq(url, params, function(res){
+				if(res.code > 0){
+					console.log('trace data');
+					console.log(res.data);
+					//clear
+					if(_this.traceMarkers.length > 0){
+						for (var i = 0; i < _this.traceMarkers.length; i++) {
+							_this.traceMarkers[i].setMap(null);
+						}
+					}
+					_this.traceMarkers = [];
+					//draw
+					for (var i = 0; i < res.data.length; i++) {
+						let marker = _this.drawTrace(res.data[i], i);
+						_this.traceMarkers.push(marker);
+						//event
+						/*google.maps.event.addListener(marker, 'mousedown', function(event) {
+							_this.handleMousedown(event);
+							if(event.wa){
+								event.wa.preventDefault();
+							}
+							if(event.va){
+								event.va.preventDefault();
+							}
+						});
+						google.maps.event.addListener(marker, 'mousemove', function(event) {
+							_this.handleMousemove(event);
+						});
+						google.maps.event.addListener(marker, 'mouseup', function(event) {
+							_this.handleMouseup(event);
+						});*/
+					}
+				}else{
+					_this.$message({
+						message: 'Failure to load trace data.',
+						type: 'warning'
+					});
+				}
+			});
+		},
 		handleType(){
 			let self = this;
 			ajaxReq(optionsUrl, {}, function(res){
@@ -838,6 +967,7 @@ new Vue({
 						});
 					}
 					self.getList();
+					self.getTraceList();
 				}
 			});
 		},

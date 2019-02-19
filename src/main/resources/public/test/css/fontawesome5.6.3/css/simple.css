@@ -201,6 +201,9 @@ readers do not read off random characters that represent icons */
   
 .fa-spinner:before {
   content: "\f110"; }
+  
+.fa-shoe-prints:before {
+  content: "\f54b"; }
 
 .sr-only {
   border: 0;

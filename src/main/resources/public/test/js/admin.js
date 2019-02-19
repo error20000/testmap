@@ -58,6 +58,9 @@ new Vue({
 			case 3:
 				url = 'comment.html';
 				break;
+			case 4:
+				url = 'trace.html';
+				break;
 				
 			default:
 				break;

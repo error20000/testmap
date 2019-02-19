@@ -24,24 +24,28 @@
 			<i class="far fa-square" style="font-size: 1.5em;"></i>
 		</button> -->
 		<div id="controlDiv" class="control-pan">
-			<button id="pointDiv" class="control-button" draggable="false" title="draw point" aria-label="draw point" type="button">
+			<button id="pointDiv" class="control-button draw" draggable="false" title="draw point" aria-label="draw point" type="button">
 				<i class="fas fa-map-marker-alt" style="font-size: 1.5em;"></i>
 			</button>
 			<div class="control-line"></div>
-			<button id="lineDiv" class="control-button" draggable="false" title="draw line" aria-label="draw line" type="button">
+			<button id="lineDiv" class="control-button draw" draggable="false" title="draw line" aria-label="draw line" type="button">
 				<i class="fas fa-slash" style="font-size: 1.5em;"></i>
 			</button>
 			<div class="control-line"></div>
-			<button id="spaceDiv" class="control-button" draggable="false" title="draw surface" aria-label="draw surface" type="button">
+			<button id="spaceDiv" class="control-button draw" draggable="false" title="draw surface" aria-label="draw surface" type="button">
 				<i class="far fa-square" style="font-size: 1.5em;"></i>
 			</button>
 			<div class="control-line"></div>
-			<button id="circleDiv" class="control-button" draggable="false" title="draw surface" aria-label="draw surface" type="button">
+			<button id="circleDiv" class="control-button draw" draggable="false" title="draw surface" aria-label="draw surface" type="button">
 				<i class="far fa-circle" style="font-size: 1.5em;"></i>
 			</button>
 			<div class="control-line"></div>
-			<button id="polygonDiv" class="control-button" draggable="false" title="draw surface" aria-label="draw surface" type="button">
+			<button id="polygonDiv" class="control-button draw" draggable="false" title="draw surface" aria-label="draw surface" type="button">
 				<i class="fas fa-draw-polygon" style="font-size: 1.5em;"></i>
+			</button>
+			<div class="control-line"></div>
+			<button id="traceDiv" class="control-button trace" draggable="false" title="draw surface" aria-label="draw surface" type="button">
+				<i class="fas fa-shoe-prints" style="font-size: 1.5em;"></i>
 			</button>
 		</div>
 		
@@ -103,6 +107,13 @@
 		<el-dialog title="Upload progress" :visible.sync="uploadProgressVisible" :close-on-click-modal="false" width="95%" >
 			<el-progress :percentage="uploadProgress" :text-inside="true" :stroke-width="18"></el-progress>
 		</el-dialog>
+		
+		<div class="trace_tips">
+			<div class="trace_tips_content">
+				<p><i class="fa fa-spinner fa-pulse"></i> Collection...</p>
+				<p>Click <i class="fas fa-shoe-prints"></i> again to save the collection.</p>
+			</div>
+		</div>
   </div>
 </body>
   <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
