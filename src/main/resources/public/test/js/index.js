@@ -28,6 +28,7 @@ new Vue({
 			marker: '',
 			markers: [],
 			userLocalCenter: '',
+			userLocalMarker: '',
 			
 			tracePath: [],
 			traceMarkers: [],
@@ -176,7 +177,9 @@ new Vue({
             this.showMap(lat, lng);
 
             //watch
-            navigator.geolocation.watchPosition(this.watchPosition);
+            //navigator.geolocation.watchPosition(this.watchPosition);
+            //秒级
+            this.onWatchPosition();
         },
         onError(error){ 
 			console.log("===========error============");
@@ -198,6 +201,12 @@ new Vue({
 			//PC test
             this.showMap(35.954652, -83.925869);
 		},
+		onWatchPosition: function(){
+			let _this = this;
+			setInterval(() => {
+				 navigator.geolocation.getCurrentPosition(_this.watchPosition, _this.onError);
+			}, 1000);
+		},
 		
 		showMap: function (lat, lng) {
 			var center = {
@@ -210,7 +219,14 @@ new Vue({
 		        // mapTypeId: google.maps.MapTypeId.ROADMAP
 	        });
 	        //My location
-	        let marker = new google.maps.Marker({
+	        this.drawLocal(center);
+	        //control
+	        this.initControl();
+	        //query data
+			this.handleType();
+		},
+		drawLocal: function(center){
+	        this.userLocalMarker = new google.maps.Marker({
 	            position: center,
 	            map: this.map,
 	            icon: {
@@ -226,13 +242,9 @@ new Vue({
 				content: 'My location.',
 				position: center
 			});
-			google.maps.event.addListener(marker, 'click', function(event) {
-				infowindow.open(this.map, marker);
+			google.maps.event.addListener(this.userLocalMarker, 'click', function(event) {
+				infowindow.open(this.map, this.userLocalMarker);
 			});
-	        //control
-	        this.initControl();
-	        //query data
-			this.handleType();
 		},
 		initControl(){
 			var div = document.getElementById('controlDiv');
@@ -782,11 +794,18 @@ new Vue({
 			this.canTrace = true;
 		},
 		watchPosition: function(position){
+			let lng = position.coords.longitude;
+			let lat = position.coords.latitude;
+			let center = {lat: lat, lng: lng};
+			console.log("watchPosition");
+			//local
+			this.userLocalMarker.setPosition(center);
+			//trace
 			if(this.canTrace){
-				console.log("watchPosition");
+				console.log("drawTrace");
 				let lng = position.coords.longitude;
 				let lat = position.coords.latitude;
-				this.tracePath.push({lat: lat, lng: lng});
+				this.tracePath.push(center);
 			}
 		},
 		traceSubmit: function(){
