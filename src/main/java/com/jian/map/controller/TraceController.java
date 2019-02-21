@@ -10,6 +10,14 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFDataFormat;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFPalette;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +25,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jian.annotation.API;
 import com.jian.annotation.ParamsInfo;
+import com.jian.map.entity.Trace;
+import com.jian.map.entity.User;
+import com.jian.map.service.TraceService;
+import com.jian.map.service.UserService;
+import com.jian.map.util.Utils;
 import com.jian.tools.core.CacheObject;
 import com.jian.tools.core.CacheTools;
 import com.jian.tools.core.JsonTools;
@@ -24,11 +37,6 @@ import com.jian.tools.core.ResultKey;
 import com.jian.tools.core.ResultTools;
 import com.jian.tools.core.Tips;
 import com.jian.tools.core.Tools;
-import com.jian.map.entity.Trace;
-import com.jian.map.entity.User;
-import com.jian.map.service.TraceService;
-import com.jian.map.service.UserService;
-import com.jian.map.util.Utils;
 
 @Controller
 @RequestMapping("/api/trace")
@@ -352,7 +360,7 @@ public class TraceController extends BaseController<Trace> {
         return ResultTools.custom(Tips.ERROR1).put(ResultKey.DATA, list).toJSONString();
 	}
 
-	@RequestMapping("/excel")
+	/*@RequestMapping("/excel")
     @ResponseBody
 	@API(name="导出excel", 
 		info="", 
@@ -442,19 +450,160 @@ public class TraceController extends BaseController<Trace> {
 			e.printStackTrace();
 		}
 		return "";
+	}*/
+	
+	@RequestMapping("/excel")
+    @ResponseBody
+	@API(name="导出excel", 
+		info="", 
+		request={
+		}, 
+		response={
+				@ParamsInfo(name=ResultKey.CODE, type="int", info="返回码"),
+				@ParamsInfo(name=ResultKey.MSG, type="String", info="状态描述"),
+				@ParamsInfo(name=ResultKey.DATA, type="Array", info="数据集"),
+		})
+	public String excel(HttpServletRequest req, HttpServletResponse resp) {
+		
+		Map<String, Object> vMap = null;
+		//登录
+		vMap = verifyLogin(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//sign
+		vMap = verifySign(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//权限
+		vMap = verifyAuth(req);
+		if(vMap != null){
+			return JsonTools.toJsonString(vMap);
+		}
+		//登录用户
+		User user = getLoginUser(req);
+		if(user == null){
+			return ResultTools.custom(Tips.ERROR111).toJSONString();
+		}
+		if(user.getAdmin() != 1){
+			return ResultTools.custom(Tips.ERROR201).toJSONString();
+		}
+		//查询用户
+		List<User> allUser = uService.findAll();
+
+		String wsql = " 1=1 ";
+		String start = Tools.getReqParamSafe(req, "start");
+		String end = Tools.getReqParamSafe(req, "end");
+		//查询
+		List<Trace> list = null;
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, Trace.class);
+		for (String key : condition.keySet()) {
+			wsql += " and `"+key+"` = :"+key;
+		}
+		if(!Tools.isNullOrEmpty(start)) {
+			wsql += " and `date` >= :start";
+			condition.put("start", start);
+		}
+		if(!Tools.isNullOrEmpty(end)) {
+			wsql += " and `date` <= :end";
+			condition.put("end", end);
+		}
+		if(condition == null || condition.isEmpty()){
+			list = service.findAll();
+		}else {
+			list = service.getDao().findList(wsql, condition);
+		}
+
+		//执行
+		resp.addHeader("Content-Disposition","attachment;filename=track.xls");
+		// response.addHeader("Content-Length", "" + JSONArray.fromObject(list).toString().getBytes().length);
+		resp.setContentType("application/vnd.ms-excel;charset=utf-8");
+		try {
+			OutputStream toClient = new BufferedOutputStream(resp.getOutputStream());
+			//实例化HSSFWorkbook
+            HSSFWorkbook workbook = new HSSFWorkbook();
+            //创建一个Excel表单，参数为sheet的名字
+            HSSFSheet sheet = workbook.createSheet("sheet");
+
+			//设置表头
+			String head = "No.,User,Color,Time,Track LAT/LONG";
+			String[] heads = head.split(",");
+            HSSFRow row = sheet.createRow(0);
+            //设置列宽，setColumnWidth的第二个参数要乘以256，这个参数的单位是1/256个字符宽度
+            for (int i = 0; i < heads.length; i++) {
+                sheet.setColumnWidth(i, (int)(( 15 + 0.72) * 256)); // 15 在EXCEL文档中实际列宽为14.29
+            }
+            //设置为居中加粗,格式化时间格式
+            HSSFCellStyle style = workbook.createCellStyle();
+            HSSFFont font = workbook.createFont();
+            font.setBold(true);
+            style.setFont(font);
+            style.setDataFormat(HSSFDataFormat.getBuiltinFormat("yyyy/MM/dd HH:mm:ss"));
+            //创建表头名称
+            HSSFCell cell;
+            for (int j = 0; j < heads.length; j++) {
+                cell = row.createCell(j);
+                cell.setCellValue(heads[j]);
+                cell.setCellStyle(style);
+            }
+
+			//遍历导出数据
+			for (int i = 0; i < list.size(); i++) {
+				Trace node = list.get(i);
+				User tmp = formatUser(allUser, node.getUser());
+
+				HSSFRow rowc = sheet.createRow(i+1);
+				rowc.createCell(0).setCellValue(node.getPid());
+				rowc.createCell(1).setCellValue(tmp == null ? node.getUser()+"" : tmp.getUsername());
+				if(tmp != null && !Tools.isNullOrEmpty(tmp.getColor())) {
+					byte r = (byte)Integer.parseInt(tmp.getColor().substring(1, 3), 16); 
+					byte g = (byte)Integer.parseInt(tmp.getColor().substring(3, 5), 16); 
+					byte b = (byte)Integer.parseInt(tmp.getColor().substring(5, 7), 16); 
+					//调色板  版号：8-64
+					HSSFPalette customPalette = workbook.getCustomPalette();
+					customPalette.setColorAtIndex((short)(8+node.getPid()), r, g, b);
+					HSSFCellStyle s = workbook.createCellStyle();
+					//前景色
+					//s.setFillForegroundColor((short)(8+node.getPid()));
+					//s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+					//字体色
+					HSSFFont f = workbook.createFont();
+					f.setColor((short)(8+node.getPid()));
+					s.setFont(f);
+					
+					HSSFCell cellc = rowc.createCell(2);
+					cellc.setCellStyle(s);
+					cellc.setCellValue(tmp.getColor());
+				}else {
+					rowc.createCell(2).setCellValue("");
+				}
+				rowc.createCell(3).setCellValue(node.getDate());
+				rowc.createCell(4).setCellValue(node.getPath());
+			}
+			workbook.write(toClient);
+			workbook.close();
+			
+			toClient.flush();
+			toClient.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
+	
 	
 	//TODO 自定义方法
 
-	private String formatUserName(List<User> users, int userId) {
-		String name = userId+"";
+	private User formatUser(List<User> users, int userId) {
+		User temp = null;
 		for (User user : users) {
 			if(user.getPid() == userId) {
-				name = user.getUsername();
+				temp = user;
 				break;
 			}
 		}
-		return name;
+		return temp;
 	}
 
 	

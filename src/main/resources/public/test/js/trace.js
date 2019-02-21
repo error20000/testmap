@@ -199,15 +199,15 @@ var myvue = new Vue({
 				let content = [];
 				content.push("<p>User: "+this.formatUser(data)+"</p>");
 				content.push("<p>Date: "+data.date+"</p>");
-				content.push("<p>Location: "+data.local+"</p>");
-				content.push("<p>Trace Path.</p>");
+				//content.push("<p>Location: "+data.local+"</p>");
+				content.push("<p>Track Path.</p>");
 				
 				let color = this.findUser(data.user).color || "#000000";
 				let marker;
 				let position;
 
 				marker = new google.maps.Polyline({
-					strokeWeight: this.polylineStrokeWeight,
+					//strokeWeight: this.polylineStrokeWeight,
 					strokeColor: color,
 					map: map,
 					path: paths
@@ -223,6 +223,25 @@ var myvue = new Vue({
 				google.maps.event.addListener(marker, 'click', function(event) {
 					infowindow.open(map, marker);
 				});
+				
+				for (var i = 0; i < paths.length; i++) {
+					let pmarker = new google.maps.Marker({
+						position: paths[i],
+						map: map,
+						icon: {
+							path: google.maps.SymbolPath.CIRCLE,
+							scale: 6,
+							fillColor: '#ffffff',
+							fillOpacity: 1,
+							strokeColor: color,
+							strokeWeight: 3
+						}
+					});
+					//event
+					google.maps.event.addListener(pmarker, 'click', function(event) {
+						infowindow.open(map, marker);
+					});
+				}
 				return marker;
 			},
 			lonLatToMercator: function(lon, lat){

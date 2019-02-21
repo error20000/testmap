@@ -846,11 +846,11 @@ new Vue({
 				return;
 			}
 			
-			let color = this.user.color || "#000000";
+			let color = "#ff0000"; //this.user.color || "#000000";
 			let marker;
 			let position;
 			marker = new google.maps.Polyline({
-				strokeWeight: this.polylineStrokeWeight,
+				//strokeWeight: this.polylineStrokeWeight,
 				strokeColor: color,
 				map: this.map,
 				path: paths
@@ -858,7 +858,7 @@ new Vue({
 			position = paths[Math.floor(paths.length/2)];
 			
 			var infowindow = new google.maps.InfoWindow({
-				content: "trace path.",
+				content: "track path.",
 				position: position
 			});
 			
@@ -866,6 +866,25 @@ new Vue({
 			google.maps.event.addListener(marker, 'click', function(event) {
 				infowindow.open(this.map, marker);
 			});
+
+			for (var i = 0; i < paths.length; i++) {
+				let pmarker = new google.maps.Marker({
+					position: paths[i],
+					map: this.map,
+					icon: {
+						path: google.maps.SymbolPath.CIRCLE,
+						scale: 6,
+						fillColor: '#ffffff',
+						fillOpacity: 1,
+						strokeColor: color,
+						strokeWeight: 3
+					}
+				});
+				//event
+				google.maps.event.addListener(pmarker, 'click', function(event) {
+					infowindow.open(this.map, marker);
+				});
+			}
 			return marker;
 		},
 		
