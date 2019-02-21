@@ -873,11 +873,11 @@ new Vue({
 					map: this.map,
 					icon: {
 						path: google.maps.SymbolPath.CIRCLE,
-						scale: 6,
+						scale: 2.4,
 						fillColor: '#ffffff',
 						fillOpacity: 1,
 						strokeColor: color,
-						strokeWeight: 3
+						strokeWeight: 2
 					}
 				});
 				//event
