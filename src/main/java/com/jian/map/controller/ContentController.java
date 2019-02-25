@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +19,7 @@ import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -574,7 +576,7 @@ public class ContentController extends BaseController<Content> {
             HSSFSheet sheet = workbook.createSheet("sheet");
 
 			//设置表头
-			String head = "No.,User,Color,Time,Area Type,Area LAT/LONG,Option Comment,User Comment";
+			String head = "No.,User,Color,Time,Area Type,Area LAT/LONG,Option Comment,User Comment,Images";
 			String[] heads = head.split(",");
             HSSFRow row = sheet.createRow(0);
             //设置列宽，setColumnWidth的第二个参数要乘以256，这个参数的单位是1/256个字符宽度
@@ -600,6 +602,7 @@ public class ContentController extends BaseController<Content> {
 				User tmp = formatUser(allUser, node.getUser());
 				String optStr = formatOptions(allOptions, node.getOption());
 				String cStr = formatContent(req, node.getContent());
+				List<String> imgStrs = formatContentImages(req, node.getContent());
 
 				HSSFRow rowc = sheet.createRow(i+1);
 				rowc.createCell(0).setCellValue(node.getPid());
@@ -610,14 +613,14 @@ public class ContentController extends BaseController<Content> {
 					byte b = (byte)Integer.parseInt(tmp.getColor().substring(5, 7), 16); 
 					//调色板  版号：8-64
 					HSSFPalette customPalette = workbook.getCustomPalette();
-					customPalette.setColorAtIndex((short)(8+node.getPid()), r, g, b);
+					customPalette.setColorAtIndex((short)(12+node.getPid()), r, g, b);
 					HSSFCellStyle s = workbook.createCellStyle();
 					//前景色
-					//s.setFillForegroundColor((short)(8+node.getPid()));
+					//s.setFillForegroundColor((short)(12+node.getPid()));
 					//s.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 					//字体色
 					HSSFFont f = workbook.createFont();
-					f.setColor((short)(8+node.getPid()));
+					f.setColor((short)(12+node.getPid()));
 					s.setFont(f);
 					
 					HSSFCell cellc = rowc.createCell(2);
@@ -626,12 +629,27 @@ public class ContentController extends BaseController<Content> {
 				}else {
 					rowc.createCell(2).setCellValue("");
 				}
-//	            rowc.createCell(2).setCellValue(tmp == null ? "" : tmp.getColor());
+	            //rowc.createCell(2).setCellValue(tmp == null ? "" : tmp.getColor());
 				rowc.createCell(3).setCellValue(node.getDate());
 				rowc.createCell(4).setCellValue(drawTypeNames[node.getType()]);
 				rowc.createCell(5).setCellValue(node.getPath());
 				rowc.createCell(6).setCellValue(optStr);
 				rowc.createCell(7).setCellValue(cStr);
+				//rowc.createCell(8).setCellValue(imgStr);
+				for (int j = 0; j < imgStrs.size(); j++) {
+					String imgStr = imgStrs.get(j);
+					HSSFCell cellc8 = rowc.createCell(8+j);
+					HSSFCellStyle linkStyle = workbook.createCellStyle();
+					HSSFFont cellFont= workbook.createFont();
+					cellFont.setUnderline((byte) 1);
+					cellFont.setColor(HSSFColor.BLUE.index);
+					linkStyle.setFont(cellFont);
+					//最后把style应用到cell上去就大功告成了。
+					cellc8.setCellStyle(linkStyle);
+					cellc8.setCellType(HSSFCell.CELL_TYPE_FORMULA);
+					cellc8.setCellFormula("HYPERLINK(\"" +imgStr+ "\")");
+				}
+				
 			}
 			workbook.write(toClient);
 			workbook.close();
@@ -681,7 +699,13 @@ public class ContentController extends BaseController<Content> {
 	}
 	private String formatContent(HttpServletRequest req, String content) {
 		String url = req.getRequestURL().toString().split("/api/")[0];
-		return content.replaceAll("<[^img][^>]*?>", "").replaceAll("src=\"/", "src=\""+url+"/");
+		return content.replaceAll("<[^>]*>", "");
+	}
+	private List<String> formatContentImages(HttpServletRequest req, String content) {
+		String url = req.getRequestURL().toString().split("/api/")[0];
+		List<String> list = Tools.parseRegEx(content, "<[img][^>]*?>");
+		//return list.stream().map(e -> url + e.replace("<img src=\"", "").replace("\">", "")).collect(Collectors.joining("\r\n"));
+		return list.stream().map(e -> url + e.replace("<img src=\"", "").replace("\">", "")).collect(Collectors.toList());
 	}
 	
 	private User getLoginUser(HttpServletRequest req){
@@ -709,8 +733,15 @@ public class ContentController extends BaseController<Content> {
 		System.out.println((byte)220);
 		System.out.println((byte)test1);
 		
+		System.out.println(HSSFColor.BLUE.index);
 		
 		System.out.println(((15*7+5)/7*256)/256);
+		
+		List<String> list = Tools.parseRegEx("<p><strong>大汉帝国是</strong><img src=\"/20190225/201902250949389174882.png\"></p>", "<[img][^>]*?>");
+		System.out.println(list.stream()
+				.map(e -> { return Tools.parseRegEx(e, "[src=\"][^\"]*\"").get(0);} )
+				.collect(Collectors.joining(","))
+		);
 		
 	}
 }
