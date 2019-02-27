@@ -20,8 +20,20 @@ spring.datasource.password=123456
 #上传    E:/Workspaces/ecworkspace/20171207/docs/docs_api/upload/
 upload_path=E:/Workspaces/ecworkspace/testmap/dist/upload/
 
+https配置
+#ssl
+#    证书地址
+server.ssl.key-store=tomcat.key
+server.ssl.key-store-type=JKS
+server.ssl.key-alias=tomcat
+#    配置密码，就是在生成证书的时候输入的密码
+server.ssl.key-store-password=123456
+server.ssl.key-password=123456
+
 启动
-运行start.bat
+windows运行start.bat
+linux运行start.sh
+
 
 账号
 普通账号：test test 

@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50515
 File Encoding         : 65001
 
-Date: 2019-01-28 18:40:33
+Date: 2019-02-19 18:43:32
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -29,12 +29,11 @@ CREATE TABLE `s_content` (
   `option` varchar(255) DEFAULT '' COMMENT '用户选择的评价',
   `content` text COMMENT '用户自定义的评价',
   PRIMARY KEY (`pid`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of s_content
 -- ----------------------------
-
 -- ----------------------------
 -- Table structure for `s_options`
 -- ----------------------------
@@ -44,10 +43,27 @@ CREATE TABLE `s_options` (
   `name` varchar(255) DEFAULT '' COMMENT '名称',
   `status` tinyint(4) DEFAULT '0' COMMENT '状态  0：禁用，1：启用',
   PRIMARY KEY (`pid`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of s_options
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for `s_trace`
+-- ----------------------------
+DROP TABLE IF EXISTS `s_trace`;
+CREATE TABLE `s_trace` (
+  `pid` int(11) NOT NULL AUTO_INCREMENT COMMENT '编号',
+  `user` int(11) DEFAULT '0' COMMENT '用户pid',
+  `date` varchar(20) DEFAULT '' COMMENT '日期',
+  `local` varchar(255) DEFAULT '' COMMENT '用户位置',
+  `path` longtext COMMENT '追踪轨迹',
+  PRIMARY KEY (`pid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Records of s_trace
 -- ----------------------------
 
 -- ----------------------------
@@ -60,11 +76,12 @@ CREATE TABLE `s_user` (
   `password` varchar(32) DEFAULT '' COMMENT '密码',
   `nick` varchar(20) DEFAULT '' COMMENT '昵称',
   `admin` tinyint(4) DEFAULT '0' COMMENT '超管  0：否，1：是',
+  `color` varchar(10) DEFAULT '' COMMENT '颜色',
   PRIMARY KEY (`pid`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of s_user
 -- ----------------------------
-INSERT INTO `s_user` VALUES ('1', 'admin', '21232f297a57a5a743894a0e4a801fc3', 'admin', '1');
-INSERT INTO `s_user` VALUES ('2', 'test', '098f6bcd4621d373cade4e832627b4f6', 'test', '0');
+INSERT INTO `s_user` VALUES ('1', 'admin', '21232f297a57a5a743894a0e4a801fc3', 'admin', '1', '#000000');
+INSERT INTO `s_user` VALUES ('2', 'test', '098f6bcd4621d373cade4e832627b4f6', 'test', '0', '#9A5959');
